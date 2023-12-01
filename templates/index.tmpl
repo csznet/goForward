@@ -33,12 +33,13 @@
             color: #fff;
         }
     
-        button {
+        .green {
             background-color: #28a745;
             color: white;
             border: none;
             padding: 8px 12px;
             cursor: pointer;
+            text-decoration-line: none;
         }
     
         form {
@@ -61,25 +62,21 @@
             border-radius: 4px;
             color: #495057;
         }
-    
         label {
             display: block;
             margin-bottom: 5px;
             color: #495057;
         }
-    
-        button[type="submit"] {
+        .send{
+            border: none;
+            color: white;
             background-color: #2181b5;
         }
-    
-        button[type="submit"]:hover, button[type="submit"]:focus {
-            background-color: #2181b5;
-        }
+
     </style>    
 </head>
 <body>
     <h1>Forward List</h1>
-    
     <table>
         <thead>
             <tr>
@@ -101,14 +98,14 @@
                     <td>{{.RemotePort}}</td>
                     <td>{{.Protocol}}</td>
                     <td>{{.TotalBytes}}</td>
-                    <td><button onclick="deleteForward({{.Id}})">Delete</button></td>
+                    <td><a class="green" href="/del/{{.Id}}">Delete</button></td>
                 </tr>
             {{end}}
         </tbody>
     </table>
 
     <h2>Add Forward</h2>
-    <form id="addForm">
+    <form action="/add"  method="post" id="addForm">
         <input type="text" name="localPort" placeholder="Local Port" required>
         <input type="text" name="remoteAddr" placeholder="Remote Addr" required>
         <input type="text" name="remotePort" placeholder="Remote Port" required>
@@ -117,35 +114,7 @@
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
         </select>
-        <button type="submit">Add</button>
+        <input class="send" type="submit" value="Add"/>
     </form>
-
-    <script>
-        document.getElementById("addForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-
-            // Implement the logic to handle form submission
-            // You can use JavaScript fetch API to send a POST request to your Go server
-
-            // Example:
-            // const formData = new FormData(event.target);
-            // fetch("/add", {
-            //     method: "POST",
-            //     body: formData
-            // })
-            // .then(response => response.json())
-            // .then(data => {
-            //     // Handle the response data
-            // })
-            // .catch(error => console.error('Error:', error));
-        });
-
-        function deleteForward(id) {
-            // Implement the logic to delete the forward with the given id
-            // You can use JavaScript fetch API to send a DELETE request to your Go server
-        }
-
-        // Add any other necessary JavaScript code
-    </script>
 </body>
 </html>

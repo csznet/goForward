@@ -12,10 +12,18 @@ import (
 func main() {
 	go web.Run()
 	forwardList := sql.GetForwardList()
-
+	if len(forwardList) == 0 {
+		//添加测试数据
+		testData := conf.ConnectionStats{
+			LocalPort:  "8080",
+			RemotePort: "8889",
+			RemoteAddr: "127.0.0.1",
+		}
+		sql.AddForward(testData)
+		forwardList = sql.GetForwardList()
+	}
 	var largeStats forward.LargeConnectionStats
 	largeStats.Connections = make([]*forward.ConnectionStats, len(forwardList))
-
 	for i := range forwardList {
 		connectionStats := &forward.ConnectionStats{
 			ConnectionStats: conf.ConnectionStats{
@@ -32,13 +40,10 @@ func main() {
 
 		largeStats.Connections[i] = connectionStats
 	}
-
 	// 设置 WaitGroup 计数为连接数
 	conf.Wg.Add(len(largeStats.Connections))
-
 	// 初始化通道
 	conf.Ch = make(chan string)
-
 	// 并发执行多个转发
 	for _, stats := range largeStats.Connections {
 		go forward.Run(stats, &conf.Wg)
