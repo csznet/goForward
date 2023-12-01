@@ -11,6 +11,8 @@ import (
 
 func main() {
 	go web.Run()
+	// 初始化通道
+	conf.Ch = make(chan string)
 	forwardList := sql.GetForwardList()
 	if len(forwardList) == 0 {
 		//添加测试数据
@@ -42,13 +44,11 @@ func main() {
 	}
 	// 设置 WaitGroup 计数为连接数
 	conf.Wg.Add(len(largeStats.Connections))
-	// 初始化通道
-	conf.Ch = make(chan string)
+
 	// 并发执行多个转发
 	for _, stats := range largeStats.Connections {
 		go forward.Run(stats, &conf.Wg)
 	}
-
 	conf.Wg.Wait()
 	defer close(conf.Ch)
 }

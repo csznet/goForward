@@ -1,0 +1,69 @@
+<!-- templates/message.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    
+        h1 {
+            color: #343a40;
+        }
+
+        .message-container, .error-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 4px;
+            width: 60%; /* 调整宽度 */
+            box-sizing: border-box;
+        }
+
+        .message-container {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error-container {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>    
+</head>
+<body>
+    <h1>Message</h1>
+    {{if .suc}}
+        <div class="message-container">
+            <p>{{.msg}}</p>
+            <div id="show">3秒后跳转</div>
+        </div>
+    {{else}}
+        <div class="error-container">
+            <p>{{.msg}}</p>
+            <div id="show">3秒后跳转</div>
+        </div>
+    {{end}}
+    <script type="text/javascript">
+        var t = 2;//设定跳转的时间
+        setInterval("refer()", 1000); //启动1秒定时
+        function refer() {
+            if (t == 0) {
+                location = "/"; //跳转的地址
+            }
+            document.getElementById('show').innerHTML = "" + t + "秒后跳转"; // 显示倒计时
+            t--; // 计数器递减
+        }
+    </script>
+</body>
+</html>
+

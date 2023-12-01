@@ -39,8 +39,25 @@ func UpdateForwardBytes(id int, bytes uint64) bool {
 	return true
 }
 
+// 判断指定端口转发是否可添加
+func freeForward(localPort string) bool {
+	var get conf.ConnectionStats
+	res := db.Model(&conf.ConnectionStats{}).Where("local_port = ?", localPort).Find(&get)
+	if res.Error == nil {
+		if get.Id == 0 {
+			return true
+		} else {
+			return false
+		}
+	}
+	return false
+}
+
 // 增加转发
 func AddForward(newForward conf.ConnectionStats) int {
+	if !freeForward(newForward.LocalPort) {
+		return 0
+	}
 	//开启事务
 	if newForward.Protocol != "udp" {
 		newForward.Protocol = "tcp"
@@ -60,4 +77,16 @@ func AddForward(newForward conf.ConnectionStats) int {
 	// 提交事务
 	tx.Commit()
 	return newForward.Id
+}
+
+// 删除转发
+func DelForward(port string) bool {
+	if freeForward(port) {
+		return false
+	}
+	if err := db.Where("local_port = ?", port).Delete(&conf.ConnectionStats{}).Error; err != nil {
+		log.Println(err)
+		return false
+	}
+	return true
 }

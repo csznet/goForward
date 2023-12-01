@@ -59,12 +59,20 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 		}
 		defer conn.Close()
 		go func() {
-			select {
-			case stopPort := <-conf.Ch:
-				if stopPort == stats.LocalPort {
-					fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
-					conn.Close()
-					return
+			for {
+				select {
+				case stopPort := <-conf.Ch:
+					if stopPort == stats.LocalPort {
+						fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
+						conn.Close()
+						cancel()
+						return
+					} else {
+						conf.Ch <- stopPort
+						time.Sleep(3 * time.Second)
+					}
+				default:
+					time.Sleep(1 * time.Second)
 				}
 			}
 		}()
@@ -81,17 +89,26 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 		}
 		defer listener.Close()
 		go func() {
-			select {
-			case stopPort := <-conf.Ch:
-				if stopPort == stats.LocalPort {
-					fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
-					listener.Close()
-					return
+			for {
+				select {
+				case stopPort := <-conf.Ch:
+					fmt.Println("通道信息:" + stopPort)
+					fmt.Println("当前端口:" + stats.LocalPort)
+					if stopPort == stats.LocalPort {
+						fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
+						listener.Close()
+						cancel()
+						return
+					} else {
+						conf.Ch <- stopPort
+						time.Sleep(3 * time.Second)
+					}
+				default:
+					time.Sleep(1 * time.Second)
 				}
 			}
 		}()
 		fmt.Printf("【%s】监听端口 %s 转发至 %s:%s\n", stats.Protocol, stats.LocalPort, stats.RemoteAddr, stats.RemotePort)
-
 		for {
 			clientConn, err := listener.Accept()
 			if err != nil {
@@ -131,13 +148,17 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 		defer copyWG.Done()
 		cs.copyBytes(remoteConn, clientConn)
 	}()
-
-	select {
-	case <-ctx.Done():
-		// 如果上级 context 被取消，停止接收新连接
-		return
-	default:
-	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				// 如果上级 context 被取消，停止接收新连接
+				return
+			default:
+				time.Sleep(3 * time.Second)
+			}
+		}
+	}()
 
 	copyWG.Wait()
 }

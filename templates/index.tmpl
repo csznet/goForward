@@ -98,7 +98,7 @@
                     <td>{{.RemotePort}}</td>
                     <td>{{.Protocol}}</td>
                     <td>{{.TotalBytes}}</td>
-                    <td><a class="green" href="/del/{{.Id}}">Delete</button></td>
+                    <td><a class="green" href="/del/{{.LocalPort}}">Delete</button></td>
                 </tr>
             {{end}}
         </tbody>
@@ -107,8 +107,8 @@
     <h2>Add Forward</h2>
     <form action="/add"  method="post" id="addForm">
         <input type="text" name="localPort" placeholder="Local Port" required>
-        <input type="text" name="remoteAddr" placeholder="Remote Addr" required>
         <input type="text" name="remotePort" placeholder="Remote Port" required>
+        <input type="text" name="remoteAddr" placeholder="Remote Addr" required>
         <label for="protocol">Protocol:</label>
         <select id="protocol" name="protocol" required>
             <option value="tcp">TCP</option>
