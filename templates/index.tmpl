@@ -1,0 +1,151 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forward List</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+    
+        h1 {
+            color: #343a40;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+    
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #2181b5;
+            color: #fff;
+        }
+    
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+    
+        form {
+            margin-top: 20px;
+        }
+    
+        input, select, button {
+            margin-bottom: 10px;
+        }
+    
+        input, select {
+            padding: 12px;
+            width: calc(100% - 24px);
+            box-sizing: border-box;
+        }
+    
+        select {
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            color: #495057;
+        }
+    
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+    
+        button[type="submit"] {
+            background-color: #2181b5;
+        }
+    
+        button[type="submit"]:hover, button[type="submit"]:focus {
+            background-color: #2181b5;
+        }
+    </style>    
+</head>
+<body>
+    <h1>Forward List</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Local Port</th>
+                <th>Remote Addr</th>
+                <th>Remote Port</th>
+                <th>Protocol</th>
+                <th>Total Bytes</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .forwardList}}
+                <tr>
+                    <td>{{.Id}}</td>
+                    <td>{{.LocalPort}}</td>
+                    <td>{{.RemoteAddr}}</td>
+                    <td>{{.RemotePort}}</td>
+                    <td>{{.Protocol}}</td>
+                    <td>{{.TotalBytes}}</td>
+                    <td><button onclick="deleteForward({{.Id}})">Delete</button></td>
+                </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <h2>Add Forward</h2>
+    <form id="addForm">
+        <input type="text" name="localPort" placeholder="Local Port" required>
+        <input type="text" name="remoteAddr" placeholder="Remote Addr" required>
+        <input type="text" name="remotePort" placeholder="Remote Port" required>
+        <label for="protocol">Protocol:</label>
+        <select id="protocol" name="protocol" required>
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+        </select>
+        <button type="submit">Add</button>
+    </form>
+
+    <script>
+        document.getElementById("addForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            // Implement the logic to handle form submission
+            // You can use JavaScript fetch API to send a POST request to your Go server
+
+            // Example:
+            // const formData = new FormData(event.target);
+            // fetch("/add", {
+            //     method: "POST",
+            //     body: formData
+            // })
+            // .then(response => response.json())
+            // .then(data => {
+            //     // Handle the response data
+            // })
+            // .catch(error => console.error('Error:', error));
+        });
+
+        function deleteForward(id) {
+            // Implement the logic to delete the forward with the given id
+            // You can use JavaScript fetch API to send a DELETE request to your Go server
+        }
+
+        // Add any other necessary JavaScript code
+    </script>
+</body>
+</html>
