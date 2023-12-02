@@ -3,6 +3,7 @@ package web
 import (
 	"html/template"
 	"net/http"
+	"strings"
 
 	"csz.net/goForward/assets"
 	"csz.net/goForward/conf"
@@ -14,6 +15,7 @@ import (
 func Run() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.Use(checkCookieMiddleware)
 	r.SetHTMLTemplate(template.Must(template.New("").Funcs(r.FuncMap).ParseFS(assets.Templates, "templates/*")))
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -48,6 +50,13 @@ func Run() {
 	})
 	r.GET("/del/:port", func(c *gin.Context) {
 		port := c.Param("port")
+		if len(sql.GetForwardList()) == 1 {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "删除失败，请确保有至少一个转发在运行",
+				"suc": false,
+			})
+			return
+		}
 		if port != "" {
 			if utils.DelForward(port) {
 				c.HTML(200, "msg.tmpl", gin.H{
@@ -67,5 +76,39 @@ func Run() {
 			})
 		}
 	})
-	r.Run(":8889")
+	r.GET("/pwd", func(c *gin.Context) {
+		c.HTML(200, "pwd.tmpl", nil)
+	})
+	r.POST("/pwd", func(c *gin.Context) {
+		c.SetCookie("p", c.PostForm("p"), 3600, "/", "localhost", false, true)
+		c.Redirect(302, "/")
+	})
+	r.Run(":" + conf.WebPort)
+}
+
+// 密码验证中间件
+func checkCookieMiddleware(c *gin.Context) {
+	cookie, err := c.Cookie("p")
+	currenPath := c.Request.URL.Path
+	if conf.WebPass != "" && currenPath != "/pwd" {
+		if err != nil || cookie != conf.WebPass {
+			c.Redirect(http.StatusFound, "/pwd")
+			c.Abort()
+			return
+		}
+	}
+	// 继续处理请求
+	c.Next()
+}
+
+// 提取路径的第一个部分作为一级目录
+func getFirstLevelDir(path string) string {
+	// 使用 strings.Split 将路径分割为多个部分
+	parts := strings.Split(path, "/")
+
+	// 如果路径包含多个部分，返回第一个部分，否则返回整个路径
+	if len(parts) > 1 {
+		return parts[1]
+	}
+	return path
 }

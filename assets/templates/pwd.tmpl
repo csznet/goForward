@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>goForward</title>
+    <style>
+        .password {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f2f2f2;
+        }
+        .form-container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .form-input {
+            width: 300px;
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        @media (max-width: 465px) {
+            .form-container {
+                padding: 0;
+                border-radius: 0;
+            }
+
+            .form-input {
+                margin-top: 30px;
+            }
+        }
+    </style>    
+</head>
+<body class="password">
+  <div class="form-container">
+    <form action="/pwd" method="POST">
+      <input name="p" class="form-input" type="text" placeholder="请输入密码" />
+      <button class="form-button" type="submit">提交</button>
+    </form>
+    <p style="color: #b0b0b0">Powered by goForward</p>
+  </div>
+</body>
+</html>

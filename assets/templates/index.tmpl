@@ -1,10 +1,10 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forward List</title>
+    <title>goForward</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -76,17 +76,17 @@
     </style>    
 </head>
 <body>
-    <h1>Forward List</h1>
+    <h2>转发列表</h2>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Local Port</th>
-                <th>Remote Addr</th>
-                <th>Remote Port</th>
-                <th>Protocol</th>
-                <th>Total Bytes</th>
-                <th>Action</th>
+                <th>本地端口</th>
+                <th>远程地址</th>
+                <th>远程端口</th>
+                <th>转发类型</th>
+                <th>统计流量</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -98,23 +98,23 @@
                     <td>{{.RemotePort}}</td>
                     <td>{{.Protocol}}</td>
                     <td>{{.TotalBytes}}</td>
-                    <td><a class="green" href="/del/{{.LocalPort}}">Delete</button></td>
+                    <td><a class="green" href="/del/{{.LocalPort}}">删除</button></td>
                 </tr>
             {{end}}
         </tbody>
     </table>
 
-    <h2>Add Forward</h2>
+    <h2>添加转发</h2>
     <form action="/add"  method="post" id="addForm">
-        <input type="text" name="localPort" placeholder="Local Port" required>
-        <input type="text" name="remotePort" placeholder="Remote Port" required>
-        <input type="text" name="remoteAddr" placeholder="Remote Addr" required>
-        <label for="protocol">Protocol:</label>
+        <input type="text" name="localPort" placeholder="本地端口" required>
+        <input type="text" name="remotePort" placeholder="远程端口" required>
+        <input type="text" name="remoteAddr" placeholder="远程地址" required>
+        <label for="protocol">类型:</label>
         <select id="protocol" name="protocol" required>
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
         </select>
-        <input class="send" type="submit" value="Add"/>
+        <input class="send" type="submit" value="添加"/>
     </form>
 </body>
 </html>

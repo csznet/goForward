@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"sync"
 
 	"csz.net/goForward/conf"
@@ -18,7 +19,7 @@ func main() {
 		//添加测试数据
 		testData := conf.ConnectionStats{
 			LocalPort:  "8080",
-			RemotePort: "8889",
+			RemotePort: conf.WebPort,
 			RemoteAddr: "127.0.0.1",
 		}
 		sql.AddForward(testData)
@@ -51,4 +52,9 @@ func main() {
 	}
 	conf.Wg.Wait()
 	defer close(conf.Ch)
+}
+func init() {
+	flag.StringVar(&conf.WebPort, "port", "8889", "Web Port")
+	flag.StringVar(&conf.WebPass, "pass", "", "Web Password")
+	flag.Parse()
 }
