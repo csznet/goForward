@@ -32,10 +32,8 @@ func AddForward(newF conf.ConnectionStats) bool {
 }
 
 // 删除并关闭指定转发
-func DelForward(port string) bool {
-	if sql.DelForward(port) {
-		conf.Ch <- port
-		return true
-	}
-	return false
+func DelForward(f conf.ConnectionStats) bool {
+	sql.DelForward(f.Id)
+	conf.Ch <- f.LocalPort + f.Protocol
+	return true
 }

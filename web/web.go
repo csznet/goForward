@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"csz.net/goForward/assets"
@@ -38,7 +39,7 @@ func Run() {
 				})
 			} else {
 				c.HTML(200, "msg.tmpl", gin.H{
-					"msg": "添加失败",
+					"msg": "添加失败，本地端口正在转发",
 					"suc": false,
 				})
 			}
@@ -49,8 +50,17 @@ func Run() {
 			})
 		}
 	})
-	r.GET("/del/:port", func(c *gin.Context) {
-		port := c.Param("port")
+	r.GET("/del/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		intID, err := strconv.Atoi(id)
+		f := sql.GetForward(intID)
+		if err != nil {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "删除失败,ID错误",
+				"suc": false,
+			})
+			return
+		}
 		if len(sql.GetForwardList()) == 1 {
 			c.HTML(200, "msg.tmpl", gin.H{
 				"msg": "删除失败，请确保有至少一个转发在运行",
@@ -58,18 +68,11 @@ func Run() {
 			})
 			return
 		}
-		if port != "" {
-			if utils.DelForward(port) {
-				c.HTML(200, "msg.tmpl", gin.H{
-					"msg": "删除成功",
-					"suc": true,
-				})
-			} else {
-				c.HTML(200, "msg.tmpl", gin.H{
-					"msg": "删除失败",
-					"suc": false,
-				})
-			}
+		if f.Id != 0 && utils.DelForward(f) {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "删除成功",
+				"suc": true,
+			})
 		} else {
 			c.HTML(200, "msg.tmpl", gin.H{
 				"msg": "删除失败",

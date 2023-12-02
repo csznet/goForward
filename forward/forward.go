@@ -62,7 +62,7 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 			for {
 				select {
 				case stopPort := <-conf.Ch:
-					if stopPort == stats.LocalPort {
+					if stopPort == stats.LocalPort+stats.Protocol {
 						fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
 						conn.Close()
 						cancel()
@@ -94,7 +94,7 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 				case stopPort := <-conf.Ch:
 					fmt.Println("通道信息:" + stopPort)
 					fmt.Println("当前端口:" + stats.LocalPort)
-					if stopPort == stats.LocalPort {
+					if stopPort == stats.LocalPort+stats.Protocol {
 						fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
 						listener.Close()
 						cancel()

@@ -39,12 +39,21 @@ func UpdateForwardBytes(id int, bytes uint64) bool {
 	return true
 }
 
+// 获取指定转发内容
+func GetForward(id int) conf.ConnectionStats {
+	var get conf.ConnectionStats
+	db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Find(&get)
+	return get
+}
+
 // 判断指定端口转发是否可添加
-func freeForward(localPort string) bool {
+func freeForward(localPort, protocol string) bool {
 	var get conf.ConnectionStats
 	res := db.Model(&conf.ConnectionStats{}).Where("local_port = ?", localPort).Find(&get)
 	if res.Error == nil {
 		if get.Id == 0 {
+			return true
+		} else if get.Protocol != protocol {
 			return true
 		} else {
 			return false
@@ -55,13 +64,13 @@ func freeForward(localPort string) bool {
 
 // 增加转发
 func AddForward(newForward conf.ConnectionStats) int {
-	if !freeForward(newForward.LocalPort) {
-		return 0
-	}
-	//开启事务
 	if newForward.Protocol != "udp" {
 		newForward.Protocol = "tcp"
 	}
+	if !freeForward(newForward.LocalPort, newForward.Protocol) {
+		return 0
+	}
+	//开启事务
 	tx := db.Begin()
 	if tx.Error != nil {
 		log.Println("开启事务失败")
@@ -80,11 +89,8 @@ func AddForward(newForward conf.ConnectionStats) int {
 }
 
 // 删除转发
-func DelForward(port string) bool {
-	if freeForward(port) {
-		return false
-	}
-	if err := db.Where("local_port = ?", port).Delete(&conf.ConnectionStats{}).Error; err != nil {
+func DelForward(id int) bool {
+	if err := db.Where("id = ?", id).Delete(&conf.ConnectionStats{}).Error; err != nil {
 		log.Println(err)
 		return false
 	}
