@@ -18,9 +18,10 @@ func main() {
 	if len(forwardList) == 0 {
 		//添加测试数据
 		testData := conf.ConnectionStats{
-			LocalPort:  "8080",
+			LocalPort:  conf.WebPort,
 			RemotePort: conf.WebPort,
 			RemoteAddr: "127.0.0.1",
+			Protocol:   "udp",
 		}
 		sql.AddForward(testData)
 		forwardList = sql.GetForwardList()
