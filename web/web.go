@@ -83,7 +83,7 @@ func Run() {
 		c.SetCookie("p", c.PostForm("p"), 3600, "/", "localhost", false, true)
 		c.Redirect(302, "/")
 	})
-	r.Run(":" + conf.WebPort)
+	r.Run("0.0.0.0:" + conf.WebPort)
 }
 
 // 密码验证中间件
