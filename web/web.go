@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -83,6 +84,7 @@ func Run() {
 		c.SetCookie("p", c.PostForm("p"), 3600, "/", "localhost", false, true)
 		c.Redirect(302, "/")
 	})
+	fmt.Println("Web管理面板端口:" + conf.WebPort)
 	r.Run("0.0.0.0:" + conf.WebPort)
 }
 
