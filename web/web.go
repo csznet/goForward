@@ -1,8 +1,10 @@
 package web
 
 import (
+	"html/template"
 	"net/http"
 
+	"csz.net/goForward/assets"
 	"csz.net/goForward/conf"
 	"csz.net/goForward/sql"
 	"csz.net/goForward/utils"
@@ -12,7 +14,7 @@ import (
 func Run() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	r.SetHTMLTemplate(template.Must(template.New("").Funcs(r.FuncMap).ParseFS(assets.Templates, "templates/*")))
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"forwardList": sql.GetForwardList(),
