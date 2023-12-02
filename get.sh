@@ -17,6 +17,4 @@ wget "https://github.com/csznet/goForward/releases/latest/download/$File" && unz
 # Set permissions
 chmod +x goForward
 
-rm "$File"
-
 echo "successfully."
