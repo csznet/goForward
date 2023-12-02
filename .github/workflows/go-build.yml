@@ -1,0 +1,64 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+      - name: Build Linux arm64
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o goForward main.go
+
+      - name: Zip Linux amd64
+        run: |
+          sudo apt-get install -y zip
+          zip goForward_arm64.zip goForward
+
+      - name: Delete goForward arm64
+        run: |
+          rm goForward
+
+      - name: Build Linux amd64
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o goForward main.go
+
+      - name: Zip Linux amd64
+        run: |
+          sudo apt-get install -y zip
+          zip goForward.zip goForward
+
+      - name: Upload server asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./goForward.zip
+          asset_name: goForward.zip
+          asset_content_type: application/zip
+
+      - name: Upload server asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./goForward_arm64.zip
+          asset_name: goForward_arm64.zip
+          asset_content_type: application/zip
