@@ -14,7 +14,7 @@ var db *gorm.DB
 
 func init() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open("goForward.db"), &gorm.Config{})
 	if err != nil {
 		log.Println("连接数据库失败")
 		return
