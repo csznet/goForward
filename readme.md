@@ -50,11 +50,13 @@ sudo nano /etc/systemd/system/goForward.service
 Description=Start goForward on boot
 
 [Service]
-ExecStart=/full/path/to/your/.goForward -pass 密码
+ExecStart=/full/path/to/your/goForward
 
 [Install]
 WantedBy=default.target
 ```
+
+其中的```/full/path/to/your/goForward```改为二进制文件地址，后面可接参数
 
 **重新加载 Systemd 配置**
 ```
