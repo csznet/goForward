@@ -3,6 +3,8 @@ package sql
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"csz.net/goForward/conf"
 	"github.com/glebarez/sqlite"
@@ -14,7 +16,17 @@ var db *gorm.DB
 
 func init() {
 	var err error
-	db, err = gorm.Open(sqlite.Open("goForward.db"), &gorm.Config{})
+	var dbPath string
+	executablePath, err := os.Executable()
+	if err != nil {
+		log.Println("获取可执行文件路径失败:", err)
+		log.Println("使用默认获取的路径")
+		dbPath = "goForward.db"
+	} else {
+		dbPath = filepath.Join(filepath.Dir(executablePath), "goForward.db")
+
+	}
+	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		log.Println("连接数据库失败")
 		return
