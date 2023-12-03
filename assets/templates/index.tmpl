@@ -11,99 +11,109 @@
             margin: auto;
             max-width: 960px;
             background-color: #f8f9fa;
+            font-size: 16px;
         }
-    
-        h1 {
+
+        h2 {
             color: #343a40;
         }
-    
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
-    
+
         th, td {
             border: 1px solid #dee2e6;
             padding: 12px;
             text-align: left;
         }
-    
+
         th {
             background-color: #2181b5;
             color: #fff;
         }
-    
-        .green {
-            background-color: #28a745;
+
+        .del {
+            display: inline-block; /* 修改为行内块元素 */
+            width: 32px; /* 设置宽度 */
+            height: 28px; /* 设置高度 */
+            background-color: red;
             color: white;
             border: none;
             padding: 8px 12px;
             cursor: pointer;
             text-decoration-line: none;
+            text-align: center; /* 居中文本 */
+            line-height: 30px; /* 设置行高以垂直居中 */
         }
-    
+
         form {
             margin-top: 20px;
         }
-    
+
         input, select, button {
             margin-bottom: 10px;
-        }
-    
-        input, select {
-            padding: 12px;
-            width: calc(100% - 24px);
+            width: 100%;
             box-sizing: border-box;
+            padding: 12px;
         }
-    
+
         select {
             background-color: #fff;
             border: 1px solid #ced4da;
             border-radius: 4px;
             color: #495057;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #495057;
         }
-        .send{
+
+        .send {
             border: none;
             color: white;
-            background-color: #2181b5;
+            background-color: #28a745;
         }
-
     </style>    
 </head>
 <body>
     <h2>转发列表</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>本地端口</th>
-                <th>远程地址</th>
-                <th>远程端口</th>
-                <th>转发类型</th>
-                <th>统计流量</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .forwardList}}
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
-                    <td>{{.Id}}</td>
-                    <td>{{.LocalPort}}</td>
-                    <td>{{.RemoteAddr}}</td>
-                    <td>{{.RemotePort}}</td>
-                    <td>{{.Protocol}}</td>
-                    <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
-                    <td><a class="green" href="/del/{{.Id}}">删除</button></td>
+                    <th>ID</th>
+                    <th>本地端口</th>
+                    <th>远程地址</th>
+                    <th>远程端口</th>
+                    <th>转发类型</th>
+                    <th>统计流量</th>
+                    <th>操作</th>
                 </tr>
-            {{end}}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {{range .forwardList}}
+                    <tr>
+                        <td>{{.Id}}</td>
+                        <td>{{.LocalPort}}</td>
+                        <td>{{.RemoteAddr}}</td>
+                        <td>{{.RemotePort}}</td>
+                        <td>{{.Protocol}}</td>
+                        <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
+                        <td><a class="del" href="/del/{{.Id}}">删除</a></td>
+                    </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
 
     <h2>添加转发</h2>
     <form action="/add"  method="post" id="addForm">
