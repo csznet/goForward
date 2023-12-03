@@ -6,12 +6,13 @@ import (
 
 // ConnectionStats 结构体用于保存多个连接信息
 type ConnectionStats struct {
-	Id         int `gorm:"primaryKey;autoIncrement"`
-	LocalPort  string
-	RemoteAddr string
-	RemotePort string
-	Protocol   string
-	TotalBytes uint64
+	Id            int `gorm:"primaryKey;autoIncrement"`
+	LocalPort     string
+	RemoteAddr    string
+	RemotePort    string
+	Protocol      string
+	TotalBytes    uint64
+	TotalGigabyte uint64
 }
 
 // 全局转发协程等待组

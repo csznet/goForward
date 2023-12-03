@@ -29,9 +29,19 @@ func GetForwardList() []conf.ConnectionStats {
 	return res
 }
 
-// 修改指定转发统计流量
+// 修改指定转发统计流量(byte)
 func UpdateForwardBytes(id int, bytes uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_bytes", bytes)
+	if res.Error != nil {
+		fmt.Println(res.Error)
+		return false
+	}
+	return true
+}
+
+// 修改指定转发统计流量(byte)
+func UpdateForwardGb(id int, gb uint64) bool {
+	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_gigabyte", gb)
 	if res.Error != nil {
 		fmt.Println(res.Error)
 		return false

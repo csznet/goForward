@@ -98,7 +98,7 @@
                     <td>{{.RemoteAddr}}</td>
                     <td>{{.RemotePort}}</td>
                     <td>{{.Protocol}}</td>
-                    <td>{{.TotalBytes}}</td>
+                    <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
                     <td><a class="green" href="/del/{{.Id}}">删除</button></td>
                 </tr>
             {{end}}

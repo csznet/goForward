@@ -253,6 +253,13 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 					total = strconv.FormatFloat(float64(cs.TotalBytes)/(1024*1024), 'f', 2, 64) + "MB"
 				}
 				fmt.Printf("【%s】端口 %s 统计流量: %s\n", cs.Protocol, cs.LocalPort, total)
+				//统计更换单位
+				var gb uint64 = 1073741824
+				if cs.TotalBytes >= gb {
+					cs.TotalGigabyte = cs.TotalGigabyte + 1
+					sql.UpdateForwardBytes(cs.Id, cs.TotalGigabyte)
+					cs.TotalBytes = cs.TotalBytes - gb
+				}
 				cs.TotalBytesOld = cs.TotalBytes
 				sql.UpdateForwardBytes(cs.Id, cs.TotalBytes)
 			}
