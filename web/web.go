@@ -84,7 +84,7 @@ func Run() {
 		c.HTML(200, "pwd.tmpl", nil)
 	})
 	r.POST("/pwd", func(c *gin.Context) {
-		c.SetCookie("p", c.PostForm("p"), 3600, "/", c.Request.Host, false, true)
+		c.SetCookie("p", c.PostForm("p"), 0, "/", c.Request.Host, false, true)
 		c.Redirect(302, "/")
 	})
 	fmt.Println("Web管理面板端口:" + conf.WebPort)
