@@ -15,6 +15,12 @@ type ConnectionStats struct {
 	TotalGigabyte uint64
 }
 
+type IpBan struct {
+	Id        int `gorm:"primaryKey;autoIncrement"`
+	Ip        string
+	TimeStamp int64
+}
+
 // 全局转发协程等待组
 var Wg sync.WaitGroup
 

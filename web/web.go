@@ -6,17 +6,22 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"csz.net/goForward/assets"
 	"csz.net/goForward/conf"
 	"csz.net/goForward/sql"
 	"csz.net/goForward/utils"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 func Run() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("goForward", store))
 	r.Use(checkCookieMiddleware)
 	r.SetHTMLTemplate(template.Must(template.New("").Funcs(r.FuncMap).ParseFS(assets.Templates, "templates/*")))
 	r.GET("/", func(c *gin.Context) {
@@ -84,7 +89,23 @@ func Run() {
 		c.HTML(200, "pwd.tmpl", nil)
 	})
 	r.POST("/pwd", func(c *gin.Context) {
-		c.SetCookie("p", c.PostForm("p"), 0, "/", c.Request.Host, false, true)
+		if !sql.IpFree(c.ClientIP()) {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "IP is Ban",
+				"suc": false,
+			})
+			return
+		}
+		session := sessions.Default(c)
+		session.Set("p", c.PostForm("p"))
+		session.Save()
+		if c.PostForm("p") != conf.WebPass {
+			ban := conf.IpBan{
+				Ip:        c.ClientIP(),
+				TimeStamp: time.Now().Unix(),
+			}
+			sql.AddBan(ban)
+		}
 		c.Redirect(302, "/")
 	})
 	fmt.Println("Web管理面板端口:" + conf.WebPort)
@@ -93,10 +114,11 @@ func Run() {
 
 // 密码验证中间件
 func checkCookieMiddleware(c *gin.Context) {
-	cookie, err := c.Cookie("p")
 	currenPath := c.Request.URL.Path
 	if conf.WebPass != "" && currenPath != "/pwd" {
-		if err != nil || cookie != conf.WebPass {
+		session := sessions.Default(c)
+		pass := session.Get("p")
+		if pass != conf.WebPass {
 			c.Redirect(http.StatusFound, "/pwd")
 			c.Abort()
 			return

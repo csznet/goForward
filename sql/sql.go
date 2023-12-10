@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"csz.net/goForward/conf"
 	"github.com/glebarez/sqlite"
@@ -24,14 +25,15 @@ func init() {
 		dbPath = "goForward.db"
 	} else {
 		dbPath = filepath.Join(filepath.Dir(executablePath), "goForward.db")
-
 	}
+	fmt.Println("Data:", dbPath)
 	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		log.Println("连接数据库失败")
 		return
 	}
 	db.AutoMigrate(&conf.ConnectionStats{})
+	db.AutoMigrate(&conf.IpBan{})
 }
 
 // 获取转发列表
@@ -117,4 +119,38 @@ func DelForward(id int) bool {
 		return false
 	}
 	return true
+}
+
+// 增加错误登录
+func AddBan(ip conf.IpBan) bool {
+	//开启事务
+	tx := db.Begin()
+	if tx.Error != nil {
+		return false
+	}
+	// 在事务中执行插入操作
+	if err := tx.Create(&ip).Error; err != nil {
+		log.Println(err)
+		tx.Rollback() // 回滚事务
+		return false
+	}
+	// 提交事务
+	tx.Commit()
+	return true
+}
+
+// 检查过去一天内指定IP地址的记录条数是否超过三条
+func IpFree(ip string) bool {
+	// 获取过去一天的时间戳
+	oneDayAgo := time.Now().Add(-24 * time.Hour).Unix()
+
+	// 查询过去一天内指定IP地址的记录条数
+	var count int64
+	if err := db.Model(&conf.IpBan{}).Where("ip = ? AND time_stamp > ?", ip, oneDayAgo).Count(&count).Error; err != nil {
+		log.Println(err)
+		return false
+	}
+
+	// 如果记录条数超过三条，则返回false；否则返回true
+	return count < 3
 }
