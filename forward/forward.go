@@ -19,6 +19,7 @@ type ConnectionStats struct {
 	conf.ConnectionStats
 	TotalBytesOld  uint64     `gorm:"-"`
 	TotalBytesLock sync.Mutex `gorm:"-"`
+	TCPConnections []net.Conn `gorm:"-"` // 新增字段，用于存储 TCP 连接
 }
 
 // 保存多个连接信息
@@ -106,6 +107,10 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 						fmt.Printf("【%s】停止监听端口 %s\n", stats.Protocol, stats.LocalPort)
 						listener.Close()
 						cancel()
+						// 遍历并关闭所有 TCP 连接
+						for _, conn := range stats.TCPConnections {
+							conn.Close()
+						}
 						return
 					} else {
 						conf.Ch <- stopPort
@@ -143,6 +148,8 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 		return
 	}
 	defer remoteConn.Close()
+
+	cs.TCPConnections = append(cs.TCPConnections, clientConn, remoteConn) // 添加连接到列表
 
 	var copyWG sync.WaitGroup
 	copyWG.Add(2)
