@@ -264,7 +264,7 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 				var gb uint64 = 1073741824
 				if cs.TotalBytes >= gb {
 					cs.TotalGigabyte = cs.TotalGigabyte + 1
-					sql.UpdateForwardBytes(cs.Id, cs.TotalGigabyte)
+					sql.UpdateForwardGb(cs.Id, cs.TotalGigabyte)
 					cs.TotalBytes = cs.TotalBytes - gb
 				}
 				cs.TotalBytesOld = cs.TotalBytes
