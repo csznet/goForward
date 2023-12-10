@@ -26,6 +26,13 @@ type LargeConnectionStats struct {
 	Connections []*ConnectionStats `json:"connections"`
 }
 
+// 复用缓冲区
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, 8192)
+	},
+}
+
 // 开启转发，负责分发具体转发
 func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -167,13 +174,12 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 func (cs *ConnectionStats) handleUDPConnection(wg *sync.WaitGroup, localConn *net.UDPConn, remoteAddr *net.UDPAddr, ctx context.Context) {
 	defer wg.Done()
 
-	buf := make([]byte, 8192)
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
+			buf := bufPool.Get().([]byte)
 			n, _, err := localConn.ReadFromUDP(buf)
 			if err != nil {
 				fmt.Println("从源读取时发生错误:", err)
@@ -186,6 +192,7 @@ func (cs *ConnectionStats) handleUDPConnection(wg *sync.WaitGroup, localConn *ne
 
 			// 处理消息的边界和错误情况
 			go cs.forwardUDPMessage(localConn, remoteAddr, buf[:n])
+			bufPool.Put(buf[:n])
 		}
 	}
 }
@@ -205,8 +212,8 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 }
 
 func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
-	buf := make([]byte, 8192) // 使用缓冲区提高性能
-
+	buf := bufPool.Get().([]byte)
+	defer bufPool.Put(buf)
 	for {
 		n, err := src.Read(buf)
 		if n > 0 {
