@@ -43,6 +43,13 @@ func GetForwardList() []conf.ConnectionStats {
 	return res
 }
 
+// 获取启用的转发列表
+func GetAction() []conf.ConnectionStats {
+	var res []conf.ConnectionStats
+	db.Model(&conf.ConnectionStats{}).Where("status = ?", 0).Find(&res)
+	return res
+}
+
 // 修改指定转发统计流量(byte)
 func UpdateForwardBytes(id int, bytes uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_bytes", bytes)
@@ -56,6 +63,16 @@ func UpdateForwardBytes(id int, bytes uint64) bool {
 // 修改指定转发统计流量(byte)
 func UpdateForwardGb(id int, gb uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_gigabyte", gb)
+	if res.Error != nil {
+		fmt.Println(res.Error)
+		return false
+	}
+	return true
+}
+
+// 修改指定转发状态
+func UpdateForwardStatus(id int, status int) bool {
+	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("status", status)
 	if res.Error != nil {
 		fmt.Println(res.Error)
 		return false

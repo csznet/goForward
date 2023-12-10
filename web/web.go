@@ -55,6 +55,40 @@ func Run() {
 			})
 		}
 	})
+	r.GET("/do/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		intID, err := strconv.Atoi(id)
+		f := sql.GetForward(intID)
+		status := false
+		if err == nil {
+			if f.Status == 0 {
+				f.Status = 1
+				if len(sql.GetAction()) == 1 {
+					c.HTML(200, "msg.tmpl", gin.H{
+						"msg": "停止失败，请确保有至少一个转发在运行",
+						"suc": false,
+					})
+					return
+				}
+			} else {
+				f.Status = 0
+			}
+			status = utils.ExStatus(f)
+		}
+		if status {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "操作成功",
+				"suc": true,
+			})
+			return
+		} else {
+			c.HTML(200, "msg.tmpl", gin.H{
+				"msg": "操作失败",
+				"suc": false,
+			})
+			return
+		}
+	})
 	r.GET("/del/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		intID, err := strconv.Atoi(id)

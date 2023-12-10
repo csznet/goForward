@@ -54,6 +54,20 @@
             line-height: 30px; /* 设置行高以垂直居中 */
         }
 
+        .do {
+            display: inline-block; /* 修改为行内块元素 */
+            width: 32px; /* 设置宽度 */
+            height: 28px; /* 设置高度 */
+            background-color: #d93b3b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            text-decoration-line: none;
+            text-align: center; /* 居中文本 */
+            line-height: 30px; /* 设置行高以垂直居中 */
+        }
+
         form {
             margin-top: 20px;
         }
@@ -109,7 +123,10 @@
                         <td>{{.RemotePort}}</td>
                         <td>{{.Protocol}}</td>
                         <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
-                        <td><a class="del" href="/del/{{.Id}}">删除</a></td>
+                        <td>
+                            <a class="del" href="/del/{{.Id}}">删除</a>
+                            <a class="do" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
+                        </td>
                     </tr>
                 {{end}}
             </tbody>

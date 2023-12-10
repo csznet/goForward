@@ -14,7 +14,7 @@ func main() {
 	go web.Run()
 	// 初始化通道
 	conf.Ch = make(chan string)
-	forwardList := sql.GetForwardList()
+	forwardList := sql.GetAction()
 	if len(forwardList) == 0 {
 		//添加测试数据
 		testData := conf.ConnectionStats{

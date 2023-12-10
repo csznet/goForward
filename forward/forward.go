@@ -90,6 +90,7 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 	} else {
 		// TCP转发
 		listener, err := net.Listen("tcp", ":"+stats.LocalPort)
+
 		if err != nil {
 			fmt.Println("监听时发生错误:", err)
 			os.Exit(1)

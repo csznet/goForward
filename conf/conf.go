@@ -11,6 +11,7 @@ type ConnectionStats struct {
 	RemoteAddr    string
 	RemotePort    string
 	Protocol      string
+	Status        int
 	TotalBytes    uint64
 	TotalGigabyte uint64
 }
