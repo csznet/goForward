@@ -35,6 +35,8 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/csznet/goForward/ma
 ./goForward -pass 666
 ```
 
+当24H内同一IP密码试错超过3次将会ban掉
+
 ## 开机自启
 
 **创建 Systemd 服务**
