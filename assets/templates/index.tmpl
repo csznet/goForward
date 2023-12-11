@@ -1,6 +1,7 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,8 @@
             border-collapse: collapse;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #dee2e6;
             padding: 12px;
             text-align: left;
@@ -40,24 +42,42 @@
             color: #fff;
         }
 
+        .but-container {
+            display: flex;
+            gap: 10px;
+            /* 设置按钮之间的间隔 */
+        }
+
         .but {
-            display: inline-block; /* 修改为行内块元素 */
-            width: 32px; /* 设置宽度 */
-            height: 28px; /* 设置高度 */
+            display: inline-block;
+            width: 32px;
+            height: 28px;
             color: white;
             border: none;
             padding: 8px 12px;
             cursor: pointer;
             text-decoration-line: none;
-            text-align: center; /* 居中文本 */
-            line-height: 30px; /* 设置行高以垂直居中 */
+            text-align: center;
+            line-height: 30px;
         }
+
+        /* 新增的样式 */
+        .but-delete {
+            background-color: #28a745;
+        }
+
+        .but-toggle {
+            background-color: #2181b5;
+        }
+
 
         form {
             margin-top: 20px;
         }
 
-        input, select, button {
+        input,
+        select,
+        button {
             margin-bottom: 10px;
             width: 100%;
             box-sizing: border-box;
@@ -82,8 +102,9 @@
             color: white;
             background-color: #2181b5;
         }
-    </style>    
+    </style>
 </head>
+
 <body>
     <h2>转发列表</h2>
     <div class="table-container">
@@ -101,25 +122,27 @@
             </thead>
             <tbody>
                 {{range .forwardList}}
-                    <tr>
-                        <td>{{.Id}}</td>
-                        <td>{{.LocalPort}}</td>
-                        <td>{{.RemoteAddr}}</td>
-                        <td>{{.RemotePort}}</td>
-                        <td>{{.Protocol}}</td>
-                        <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
-                        <td>
-                            <a class="but" style="background-color: #28a745;" href="/del/{{.Id}}">删除</a>
-                            <a class="but" style="background-color: #{{if eq .Status 0}}d93b3b{{else}}2181b5{{end}};" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>{{.Id}}</td>
+                    <td>{{.LocalPort}}</td>
+                    <td>{{.RemoteAddr}}</td>
+                    <td>{{.RemotePort}}</td>
+                    <td>{{.Protocol}}</td>
+                    <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
+                    <td>
+                        <div class="but-container">
+                            <a class="but but-delete" href="/del/{{.Id}}">删除</a>
+                            <a class="but but-toggle" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
+                        </div>
+                    </td>
+                </tr>
                 {{end}}
             </tbody>
         </table>
     </div>
 
     <h2>添加转发</h2>
-    <form action="/add"  method="post" id="addForm">
+    <form action="/add" method="post" id="addForm">
         <input type="text" name="localPort" placeholder="本地端口" required>
         <input type="text" name="remotePort" placeholder="远程端口" required>
         <input type="text" name="remoteAddr" placeholder="远程地址" required>
@@ -128,7 +151,8 @@
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
         </select>
-        <input class="send" type="submit" value="添加"/>
+        <input class="send" type="submit" value="添加" />
     </form>
 </body>
+
 </html>
