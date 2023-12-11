@@ -50,9 +50,9 @@ func ExStatus(f conf.ConnectionStats) bool {
 					RemotePort: f.RemotePort,
 					RemoteAddr: f.RemoteAddr,
 					Protocol:   f.Protocol,
-					TotalBytes: 0,
+					TotalBytes: f.TotalBytes,
 				},
-				TotalBytesOld:  0,
+				TotalBytesOld:  f.TotalBytes,
 				TotalBytesLock: sync.Mutex{},
 			}
 			conf.Wg.Add(1)
