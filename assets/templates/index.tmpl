@@ -53,6 +53,7 @@
             width: 32px;
             height: 28px;
             color: white;
+            background-color: #28a745;
             border: none;
             padding: 8px 12px;
             cursor: pointer;
@@ -60,16 +61,6 @@
             text-align: center;
             line-height: 30px;
         }
-
-        /* 新增的样式 */
-        .but-delete {
-            background-color: #28a745;
-        }
-
-        .but-toggle {
-            background-color: #2181b5;
-        }
-
 
         form {
             margin-top: 20px;
@@ -131,8 +122,8 @@
                     <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
                     <td>
                         <div class="but-container">
-                            <a class="but but-delete" href="/del/{{.Id}}">删除</a>
-                            <a class="but but-toggle" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
+                            <a class="but" href="/del/{{.Id}}">删除</a>
+                            <a class="but" style="background-color: #{{if eq .Status 0}}d93b3b{{else}}2181b5{{end}};" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
                         </div>
                     </td>
                 </tr>
