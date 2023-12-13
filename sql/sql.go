@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"csz.net/goForward/conf"
@@ -103,8 +104,17 @@ func freeForward(localPort, protocol string) bool {
 	return false
 }
 
+// 去掉所有空格
+func rmSpaces(input string) string {
+	return strings.ReplaceAll(input, " ", "")
+}
+
 // 增加转发
 func AddForward(newForward conf.ConnectionStats) int {
+	//预处理
+	newForward.RemoteAddr = rmSpaces(newForward.RemoteAddr)
+	newForward.RemotePort = rmSpaces(newForward.RemotePort)
+	newForward.LocalPort = rmSpaces(newForward.LocalPort)
 	if newForward.Protocol != "udp" {
 		newForward.Protocol = "tcp"
 	}
