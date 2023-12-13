@@ -51,6 +51,13 @@ func GetAction() []conf.ConnectionStats {
 	return res
 }
 
+// 获取ipban列表
+func GetIpBan() []conf.IpBan {
+	var res []conf.IpBan
+	db.Model(&conf.IpBan{}).Find(&res)
+	return res
+}
+
 // 修改指定转发统计流量(byte)
 func UpdateForwardBytes(id int, bytes uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_bytes", bytes)

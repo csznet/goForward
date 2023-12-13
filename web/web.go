@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"csz.net/goForward/assets"
@@ -28,6 +27,9 @@ func Run() {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"forwardList": sql.GetForwardList(),
 		})
+	})
+	r.GET("/ban", func(c *gin.Context) {
+		c.JSON(200, sql.GetIpBan())
 	})
 	r.POST("/add", func(c *gin.Context) {
 		if c.PostForm("localPort") != "" && c.PostForm("remoteAddr") != "" && c.PostForm("remotePort") != "" && c.PostForm("protocol") != "" {
@@ -132,6 +134,8 @@ func Run() {
 		}
 		session := sessions.Default(c)
 		session.Set("p", c.PostForm("p"))
+		// 设置session的过期时间为1天
+		session.Options(sessions.Options{MaxAge: 86400})
 		session.Save()
 		if c.PostForm("p") != conf.WebPass {
 			ban := conf.IpBan{
@@ -160,16 +164,4 @@ func checkCookieMiddleware(c *gin.Context) {
 	}
 	// 继续处理请求
 	c.Next()
-}
-
-// 提取路径的第一个部分作为一级目录
-func getFirstLevelDir(path string) string {
-	// 使用 strings.Split 将路径分割为多个部分
-	parts := strings.Split(path, "/")
-
-	// 如果路径包含多个部分，返回第一个部分，否则返回整个路径
-	if len(parts) > 1 {
-		return parts[1]
-	}
-	return path
 }
