@@ -46,7 +46,7 @@ func Run() {
 				})
 			} else {
 				c.HTML(200, "msg.tmpl", gin.H{
-					"msg": "添加失败，本地端口正在转发",
+					"msg": "添加失败，端口已占用",
 					"suc": false,
 				})
 			}

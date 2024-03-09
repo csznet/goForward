@@ -37,7 +37,7 @@ var bufPool = sync.Pool{
 // 开启转发，负责分发具体转发
 func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 	defer wg.Done()
-
+	defer releaseResources(stats) // 在函数返回时释放资源
 	var ctx, cancel = context.WithCancel(context.Background())
 	var innerWg sync.WaitGroup
 
@@ -142,6 +142,10 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 	defer wg.Done()
 	defer clientConn.Close()
 
+	// 设置连接读写超时时间
+	clientConn.SetReadDeadline(time.Now().Add(time.Duration(5) * time.Second))
+	clientConn.SetWriteDeadline(time.Now().Add(time.Duration(5) * time.Second))
+
 	remoteConn, err := net.Dial("tcp", cs.RemoteAddr+":"+cs.RemotePort)
 	if err != nil {
 		fmt.Println("连接远程地址时发生错误:", err)
@@ -150,7 +154,6 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 	defer remoteConn.Close()
 
 	cs.TCPConnections = append(cs.TCPConnections, clientConn, remoteConn) // 添加连接到列表
-
 	var copyWG sync.WaitGroup
 	copyWG.Add(2)
 
@@ -254,7 +257,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 // 定时打印和处理流量变化
 func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 	defer wg.Done()
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop() // 在函数结束时停止定时器
 	for {
 		select {
@@ -277,6 +280,16 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 				}
 				cs.TotalBytesOld = cs.TotalBytes
 				sql.UpdateForwardBytes(cs.Id, cs.TotalBytes)
+				fmt.Printf("【%s】端口 %s 当前连接数: %d\n", cs.Protocol, cs.LocalPort, len(cs.TCPConnections))
+			} else {
+				if cs.Protocol == "tcp" {
+					for i := len(cs.TCPConnections) - 1; i >= 0; i-- {
+						conn := cs.TCPConnections[i]
+						conn.Close()
+						// 从连接列表中移除关闭的连接
+						cs.TCPConnections = append(cs.TCPConnections[:i], cs.TCPConnections[i+1:]...)
+					}
+				}
 			}
 			cs.TotalBytesLock.Unlock()
 		//当协程退出时执行
@@ -284,4 +297,32 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 			return
 		}
 	}
+}
+
+// 关闭 TCP 连接并从切片中移除
+func closeTCPConnections(stats *ConnectionStats) {
+	stats.TotalBytesLock.Lock()
+	defer stats.TotalBytesLock.Unlock()
+	for _, conn := range stats.TCPConnections {
+		conn.Close()
+	}
+	stats.TCPConnections = nil // 清空切片
+}
+
+// 清理缓冲区
+func cleanupBuffer() {
+	// 如果有剩余的缓冲区，归还给池
+	for {
+		buf := bufPool.Get()
+		if buf == nil {
+			break
+		}
+		bufPool.Put(buf)
+	}
+}
+
+// 释放资源
+func releaseResources(stats *ConnectionStats) {
+	closeTCPConnections(stats)
+	cleanupBuffer()
 }
