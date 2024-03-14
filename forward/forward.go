@@ -143,10 +143,6 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 	defer wg.Done()
 	defer clientConn.Close()
 
-	// 设置连接读写超时时间
-	clientConn.SetReadDeadline(time.Now().Add(time.Duration(5) * time.Second))
-	clientConn.SetWriteDeadline(time.Now().Add(time.Duration(5) * time.Second))
-
 	remoteConn, err := net.Dial("tcp", cs.RemoteAddr+":"+cs.RemotePort)
 	if err != nil {
 		fmt.Println("连接远程地址时发生错误:", err)
