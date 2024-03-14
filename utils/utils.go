@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"sync"
 
 	"csz.net/goForward/conf"
@@ -11,8 +10,7 @@ import (
 
 // 增加转发并开启
 func AddForward(newF conf.ConnectionStats) bool {
-	fmt.Print(newF)
-	if newF.LocalPort == conf.WebPort {
+	if newF.LocalPort == conf.WebPort && newF.Protocol == "tcp" {
 		return false
 	}
 	id := sql.AddForward(newF)
@@ -45,6 +43,9 @@ func DelForward(f conf.ConnectionStats) bool {
 
 // 改变转发状态
 func ExStatus(f conf.ConnectionStats) bool {
+	if sql.FreeForward(f.LocalPort, f.Protocol) {
+		return false
+	}
 	if sql.UpdateForwardStatus(f.Id, f.Status) {
 		// 启用转发
 		if f.Status == 0 {
