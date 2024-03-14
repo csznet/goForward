@@ -19,7 +19,8 @@ type ConnectionStats struct {
 	conf.ConnectionStats
 	TotalBytesOld  uint64     `gorm:"-"`
 	TotalBytesLock sync.Mutex `gorm:"-"`
-	TCPConnections []net.Conn `gorm:"-"` // 新增字段，用于存储 TCP 连接
+	TCPConnections []net.Conn `gorm:"-"` // 用于存储 TCP 连接
+	TcpTime        int        `gorm:"-"` // TCP无传输时间
 }
 
 // 保存多个连接信息
@@ -264,6 +265,9 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 		case <-ticker.C:
 			cs.TotalBytesLock.Lock()
 			if cs.TotalBytes > cs.TotalBytesOld {
+				if cs.Protocol == "tcp" {
+					cs.TcpTime = 0
+				}
 				var total string
 				if cs.TotalBytes > 0 && float64(cs.TotalBytes)/(1024*1024) < 0.5 {
 					total = strconv.FormatFloat(float64(cs.TotalBytes)/(1024), 'f', 2, 64) + "KB"
@@ -283,11 +287,16 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 				fmt.Printf("【%s】端口 %s 当前连接数: %d\n", cs.Protocol, cs.LocalPort, len(cs.TCPConnections))
 			} else {
 				if cs.Protocol == "tcp" {
-					for i := len(cs.TCPConnections) - 1; i >= 0; i-- {
-						conn := cs.TCPConnections[i]
-						conn.Close()
-						// 从连接列表中移除关闭的连接
-						cs.TCPConnections = append(cs.TCPConnections[:i], cs.TCPConnections[i+1:]...)
+					cs.TcpTime = cs.TcpTime + 5
+					// fmt.Printf("【%s】端口 %s 当前超时秒: %d\n", cs.Protocol, cs.LocalPort, cs.TcpTime)
+					if cs.TcpTime >= 3600 {
+						// fmt.Printf("【%s】端口 %s 超时关闭\n", cs.Protocol, cs.LocalPort)
+						for i := len(cs.TCPConnections) - 1; i >= 0; i-- {
+							conn := cs.TCPConnections[i]
+							conn.Close()
+							// 从连接列表中移除关闭的连接
+							cs.TCPConnections = append(cs.TCPConnections[:i], cs.TCPConnections[i+1:]...)
+						}
 					}
 				}
 			}
