@@ -287,7 +287,6 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 				fmt.Printf("【%s】端口 %s 当前连接数: %d\n", cs.Protocol, cs.LocalPort, len(cs.TCPConnections))
 			} else {
 				if cs.Protocol == "tcp" {
-					cs.TcpTime = cs.TcpTime + 5
 					// fmt.Printf("【%s】端口 %s 当前超时秒: %d\n", cs.Protocol, cs.LocalPort, cs.TcpTime)
 					if cs.TcpTime >= conf.TcpTimeout {
 						// fmt.Printf("【%s】端口 %s 超时关闭\n", cs.Protocol, cs.LocalPort)
@@ -297,6 +296,8 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 							// 从连接列表中移除关闭的连接
 							cs.TCPConnections = append(cs.TCPConnections[:i], cs.TCPConnections[i+1:]...)
 						}
+					} else {
+						cs.TcpTime = cs.TcpTime + 5
 					}
 				}
 			}
