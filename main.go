@@ -12,6 +12,9 @@ import (
 
 func main() {
 	go web.Run()
+	if conf.TcpTimeout < 5 {
+		conf.TcpTimeout = 5
+	}
 	// 初始化通道
 	conf.Ch = make(chan string)
 	forwardList := sql.GetAction()
@@ -57,5 +60,6 @@ func main() {
 func init() {
 	flag.StringVar(&conf.WebPort, "port", "8889", "Web Port")
 	flag.StringVar(&conf.WebPass, "pass", "", "Web Password")
+	flag.IntVar(&conf.TcpTimeout, "tt", 3600, "Tcp Timeout")
 	flag.Parse()
 }

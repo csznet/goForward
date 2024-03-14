@@ -21,7 +21,13 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/csznet/goForward/ma
 ./goForward
 ```
 
-**参数**
+**参数**  
+TCP无传输超时关闭
+默认3600，单位秒
+```
+./goForward -tt 18000
+```
+
 
 自定义web管理端口
 

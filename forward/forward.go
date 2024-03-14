@@ -289,7 +289,7 @@ func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
 				if cs.Protocol == "tcp" {
 					cs.TcpTime = cs.TcpTime + 5
 					// fmt.Printf("【%s】端口 %s 当前超时秒: %d\n", cs.Protocol, cs.LocalPort, cs.TcpTime)
-					if cs.TcpTime >= 3600 {
+					if cs.TcpTime >= conf.TcpTimeout {
 						// fmt.Printf("【%s】端口 %s 超时关闭\n", cs.Protocol, cs.LocalPort)
 						for i := len(cs.TCPConnections) - 1; i >= 0; i-- {
 							conn := cs.TCPConnections[i]

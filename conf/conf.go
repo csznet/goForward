@@ -33,3 +33,6 @@ var WebPort string
 
 // Web管理面板密码
 var WebPass string
+
+// TCP超时
+var TcpTimeout int
