@@ -98,11 +98,9 @@ func GetForward(id int) conf.ConnectionStats {
 // 判断指定端口转发是否可添加
 func FreeForward(localPort, protocol string) bool {
 	var get conf.ConnectionStats
-	res := db.Model(&conf.ConnectionStats{}).Where("local_port = ?", localPort).Find(&get)
+	res := db.Model(&conf.ConnectionStats{}).Where("local_port = ? And protocal = ?", localPort, protocol).Find(&get)
 	if res.Error == nil {
 		if get.Id == 0 {
-			return true
-		} else if get.Protocol != protocol {
 			return true
 		} else {
 			return false
