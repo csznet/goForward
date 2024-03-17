@@ -315,20 +315,7 @@ func closeTCPConnections(stats *ConnectionStats) {
 	stats.TCPConnections = nil // 清空切片
 }
 
-// 清理缓冲区
-func cleanupBuffer() {
-	// 如果有剩余的缓冲区，归还给池
-	for {
-		buf := bufPool.Get()
-		if buf == nil {
-			break
-		}
-		bufPool.Put(buf)
-	}
-}
-
 // 释放资源
 func releaseResources(stats *ConnectionStats) {
 	closeTCPConnections(stats)
-	cleanupBuffer()
 }
