@@ -47,7 +47,7 @@ jobs:
 
     - name: Zip Windows amd64
       run: |
-        zip goForward-win.zip goForward.exe
+        zip goForward_win.zip goForward.exe
 
     - name: Upload server asset
       uses: actions/upload-release-asset@v1
