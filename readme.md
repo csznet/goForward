@@ -6,6 +6,8 @@
  - web管理面板
  - 流量统计
 
+支持：Linux、Windows、MacOS（MacOS需要自行编译）
+
 **截图**
 
 ![preview](https://www.csz.net/images/goForward.png)
