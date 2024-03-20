@@ -39,8 +39,15 @@ jobs:
 
     - name: Zip Linux amd64
       run: |
-        sudo apt-get install -y zip
         zip goForward.zip goForward
+
+    - name: Build Windows amd64
+      run: |
+        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o goForward.exe main.go
+
+    - name: Zip Windows amd64
+      run: |
+        zip goForward-win.zip goForward.exe
 
     - name: Upload server asset
       uses: actions/upload-release-asset@v1
@@ -60,4 +67,14 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: ./goForward_arm64.zip
         asset_name: goForward_arm64.zip
+        asset_content_type: application/zip
+
+    - name: Upload server asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./goForward_win.zip
+        asset_name: goForward_win.zip
         asset_content_type: application/zip
