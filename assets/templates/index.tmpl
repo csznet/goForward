@@ -144,6 +144,35 @@
         </select>
         <input class="send" type="submit" value="添加" />
     </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const trafficCells = document.querySelectorAll('td:nth-child(6)'); // 选择所有流量单元格
+            trafficCells.forEach(cell => {
+                let traffic = cell.textContent.trim();
+                let valueInBytes = 0;
+                // 检测并转换流量单位
+                if (traffic.includes('G')) {
+                    let parts = traffic.split('G');
+                    valueInBytes = parseFloat(parts[0]) * 1024 * 1024 * 1024; // G部分转换为字节
+                    if (parts[1]) {
+                        valueInBytes += parseInt(parts[1]); // 加上剩余的字节数
+                    }
+                } else {
+                    valueInBytes = parseInt(traffic); // 全部是字节数
+                }
+                // 格式化流量显示
+                if (valueInBytes >= 1e9) { // 大于等于1GB
+                    cell.textContent = (valueInBytes / 1e9).toFixed(2) + ' GB';
+                } else if (valueInBytes >= 1e6) { // 大于等于1MB
+                    cell.textContent = (valueInBytes / 1e6).toFixed(2) + ' MB';
+                } else if (valueInBytes >= 1e3) { // 大于等于1KB
+                    cell.textContent = (valueInBytes / 1e3).toFixed(2) + ' KB';
+                } else { // 小于1KB
+                    cell.textContent = valueInBytes + ' B';
+                }
+            });
+        });
+    </script>    
 </body>
 
 </html>
