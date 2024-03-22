@@ -26,8 +26,20 @@ if ! command -v unzip &> /dev/null; then
   fi
 fi
 
+# 获取百度的平均延迟（ping 5次并取平均值）
+ping_result=$(ping -c 5 -q baidu.com | awk -F'/' 'END{print $5}')
+
+# 判断延迟是否在100以内
+if awk -v ping="$ping_result" 'BEGIN{exit !(ping < 100)}'; then
+  echo "服务器位于中国国内，使用代理下载"
+  url="https://mirror.ghproxy.com/https://github.com/csznet/goForward/releases/latest/download/${FILE}"
+else
+  echo "服务器位于国外，不使用代理下载"
+  url="https://github.com/csznet/goForward/releases/latest/download/${FILE}"
+fi
+
 # Download and unzip
-if ! wget "https://github.com/csznet/goForward/releases/latest/download/$FILE"; then
+if ! wget $url; then
   echo -e "\e[41mError\e[0m: Failed to download $FILE. Please check your internet connection or try again later."
   exit 1
 fi
