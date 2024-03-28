@@ -10,7 +10,8 @@
 
 **截图**
 
-![preview](https://www.csz.net/images/goForward.png)
+![image](https://github.com/csznet/goForward/assets/127601663/2f7840ff-9b34-4f69-a7c1-41feb35e726b)
+
 
 **使用**
 
