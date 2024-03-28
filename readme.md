@@ -39,7 +39,7 @@ TCP无传输超时关闭
 ./goForward -port 8899
 ```
 
-自定义IP绑定  
+指定IP绑定  
 
 ```
 ./goForward -ip 1.1.1.1
