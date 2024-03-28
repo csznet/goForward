@@ -39,6 +39,12 @@ TCP无传输超时关闭
 ./goForward -port 8899
 ```
 
+自定义IP绑定  
+
+```
+./goForward -ip 1.1.1.1
+```
+
 设置web管理访问密码
 
 ```
@@ -62,7 +68,7 @@ sudo nano /etc/systemd/system/goForward.service
 Description=Start goForward on boot
 
 [Service]
-ExecStart=/full/path/to/your/goForward
+ExecStart=/full/path/to/your/goForward -pass 666
 
 [Install]
 WantedBy=default.target

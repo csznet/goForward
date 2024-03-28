@@ -31,6 +31,9 @@ var Ch chan string
 // Web管理面板端口
 var WebPort string
 
+// Web IP绑定
+var WebIP string
+
 // Web管理面板密码
 var WebPass string
 

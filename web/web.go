@@ -147,7 +147,7 @@ func Run() {
 		c.Redirect(302, "/")
 	})
 	fmt.Println("Web管理面板端口:" + conf.WebPort)
-	r.Run("0.0.0.0:" + conf.WebPort)
+	r.Run(conf.WebIP + ":" + conf.WebPort)
 }
 
 // 密码验证中间件
