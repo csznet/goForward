@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -39,3 +40,12 @@ var WebPass string
 
 // TCP超时
 var TcpTimeout int
+
+// 版本号
+var version string
+
+func init() {
+	if version != "" {
+		fmt.Println("goForward Version " + version)
+	}
+}
