@@ -11,9 +11,11 @@ import (
 	"csz.net/goForward/web"
 )
 
+var version string
+
 func main() {
-	if conf.Version != "" {
-		fmt.Println("goForward Version " + conf.Version)
+	if version != "" {
+		fmt.Println("goForward Version " + version)
 	}
 	go web.Run()
 	if conf.TcpTimeout < 5 {

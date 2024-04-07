@@ -39,6 +39,3 @@ var WebPass string
 
 // TCP超时
 var TcpTimeout int
-
-// 版本号
-var Version string
