@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"sync"
 
 	"csz.net/goForward/conf"
@@ -11,6 +12,9 @@ import (
 )
 
 func main() {
+	if conf.Version != "" {
+		fmt.Println("goForward Version " + conf.Version)
+	}
 	go web.Run()
 	if conf.TcpTimeout < 5 {
 		conf.TcpTimeout = 5
