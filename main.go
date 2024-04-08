@@ -49,10 +49,12 @@ func main() {
 	}
 	// 设置 WaitGroup 计数为连接数
 	conf.Wg.Add(len(largeStats.Connections))
-
 	// 并发执行多个转发
 	for _, stats := range largeStats.Connections {
-		go forward.Run(stats, &conf.Wg)
+		go func(s *forward.ConnectionStats) {
+			forward.Run(s)
+			conf.Wg.Done()
+		}(stats)
 	}
 	conf.Wg.Wait()
 	defer close(conf.Ch)

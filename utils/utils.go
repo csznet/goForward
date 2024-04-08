@@ -28,7 +28,10 @@ func AddForward(newF conf.ConnectionStats) bool {
 			TotalBytesLock: sync.Mutex{},
 		}
 		conf.Wg.Add(1)
-		go forward.Run(stats, &conf.Wg)
+		go func() {
+			forward.Run(stats)
+			conf.Wg.Done()
+		}()
 		return true
 	}
 	return false
@@ -62,7 +65,10 @@ func ExStatus(f conf.ConnectionStats) bool {
 				TotalBytesLock: sync.Mutex{},
 			}
 			conf.Wg.Add(1)
-			go forward.Run(stats, &conf.Wg)
+			go func() {
+				forward.Run(stats)
+				conf.Wg.Done()
+			}()
 			return true
 		} else {
 			conf.Ch <- f.LocalPort + f.Protocol

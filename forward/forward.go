@@ -37,8 +37,7 @@ var bufPool = sync.Pool{
 }
 
 // 开启转发，负责分发具体转发
-func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
-	defer wg.Done()
+func Run(stats *ConnectionStats) {
 	defer releaseResources(stats) // 在函数返回时释放资源
 	var ctx, cancel = context.WithCancel(context.Background())
 	var innerWg sync.WaitGroup
@@ -165,14 +164,12 @@ func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn ne
 			}
 		}
 	}()
-
 	copyWG.Wait()
 }
 
 // UDP转发
 func (cs *ConnectionStats) handleUDPConnection(wg *sync.WaitGroup, localConn *net.UDPConn, remoteAddr *net.UDPAddr, ctx context.Context) {
 	defer wg.Done()
-
 	for {
 		select {
 		case <-ctx.Done():
