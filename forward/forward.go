@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -41,11 +40,12 @@ func Run(stats *ConnectionStats) {
 	defer releaseResources(stats) // 在函数返回时释放资源
 	var ctx, cancel = context.WithCancel(context.Background())
 	var innerWg sync.WaitGroup
-
 	defer cancel()
-
 	innerWg.Add(1)
-	go stats.printStats(&innerWg, ctx)
+	go func() {
+		stats.printStats(ctx)
+		innerWg.Done()
+	}()
 	fmt.Printf("【%s】监听端口 %s 转发至 %s:%s\n", stats.Protocol, stats.LocalPort, stats.RemoteAddr, stats.RemotePort)
 	if stats.Protocol == "udp" {
 		// UDP转发
@@ -81,13 +81,15 @@ func Run(stats *ConnectionStats) {
 			}
 		}()
 		innerWg.Add(1)
-		go stats.handleUDPConnection(&innerWg, conn, remoteAddr, ctx)
+		go func() {
+			stats.handleUDPConnection(conn, remoteAddr, ctx)
+			innerWg.Done()
+		}()
 	} else {
 		// TCP转发
 		listener, err := net.Listen("tcp", ":"+stats.LocalPort)
 		if err != nil {
-			fmt.Println("监听时发生错误:", err)
-			os.Exit(1)
+			log.Fatalln("监听时发生错误:", err)
 		}
 		defer listener.Close()
 		go func() {
@@ -117,59 +119,53 @@ func Run(stats *ConnectionStats) {
 		for {
 			clientConn, err := listener.Accept()
 			if err != nil {
-				fmt.Println("接受连接时发生错误:", err)
+				log.Println("接受连接时发生错误:", err)
 				cancel()
 				break
 			}
 			innerWg.Add(1)
-			go stats.handleTCPConnection(&innerWg, clientConn, ctx)
+			go func() {
+				stats.handleTCPConnection(clientConn, ctx)
+				innerWg.Done()
+			}()
 		}
 	}
 	innerWg.Wait()
 }
 
 // TCP转发
-func (cs *ConnectionStats) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Conn, ctx context.Context) {
-	defer wg.Done()
+func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.Context) {
 	defer clientConn.Close()
-
 	remoteConn, err := net.Dial("tcp", cs.RemoteAddr+":"+cs.RemotePort)
 	if err != nil {
 		fmt.Println("连接远程地址时发生错误:", err)
 		return
 	}
 	defer remoteConn.Close()
-
 	cs.TCPConnections = append(cs.TCPConnections, clientConn, remoteConn) // 添加连接到列表
 	var copyWG sync.WaitGroup
 	copyWG.Add(2)
-
 	go func() {
 		defer copyWG.Done()
 		cs.copyBytes(clientConn, remoteConn)
 	}()
-
 	go func() {
 		defer copyWG.Done()
 		cs.copyBytes(remoteConn, clientConn)
 	}()
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				// 如果上级 context 被取消，停止接收新连接
-				return
-			default:
-				time.Sleep(3 * time.Second)
-			}
+	for {
+		select {
+		case <-ctx.Done():
+			// 如果上级 context 被取消，停止接收新连接
+			return
+		default:
+			copyWG.Wait()
 		}
-	}()
-	copyWG.Wait()
+	}
 }
 
 // UDP转发
-func (cs *ConnectionStats) handleUDPConnection(wg *sync.WaitGroup, localConn *net.UDPConn, remoteAddr *net.UDPAddr, ctx context.Context) {
-	defer wg.Done()
+func (cs *ConnectionStats) handleUDPConnection(localConn *net.UDPConn, remoteAddr *net.UDPAddr, ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -197,10 +193,8 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 	// 在消息前面添加消息长度信息
 	length := make([]byte, 2)
 	binary.BigEndian.PutUint16(length, uint16(len(message)))
-
 	// 组合消息长度和实际消息
 	data := append(length, message...)
-
 	_, err := localConn.WriteToUDP(data, remoteAddr)
 	if err != nil {
 		fmt.Println("写入目标时发生错误:", err)
@@ -216,32 +210,27 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 			cs.TotalBytesLock.Lock()
 			cs.TotalBytes += uint64(n)
 			cs.TotalBytesLock.Unlock()
-
 			_, err := dst.Write(buf[:n])
 			if err != nil {
 				fmt.Println("写入目标时发生错误:", err)
 				break
 			}
 		}
-
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			fmt.Println("从源读取时发生错误:", err)
 			break
 		}
 	}
-
 	// 关闭连接
 	dst.Close()
 	src.Close()
 }
 
 // 定时打印和处理流量变化
-func (cs *ConnectionStats) printStats(wg *sync.WaitGroup, ctx context.Context) {
-	defer wg.Done()
+func (cs *ConnectionStats) printStats(ctx context.Context) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop() // 在函数结束时停止定时器
 	for {
