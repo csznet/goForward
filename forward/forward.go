@@ -46,7 +46,7 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 
 	innerWg.Add(1)
 	go stats.printStats(&innerWg, ctx)
-
+	fmt.Printf("【%s】监听端口 %s 转发至 %s:%s\n", stats.Protocol, stats.LocalPort, stats.RemoteAddr, stats.RemotePort)
 	if stats.Protocol == "udp" {
 		// UDP转发
 		localAddr, err := net.ResolveUDPAddr("udp", ":"+stats.LocalPort)
@@ -54,13 +54,11 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 			fmt.Println("解析本地地址时发生错误:", err)
 			os.Exit(1)
 		}
-
 		remoteAddr, err := net.ResolveUDPAddr("udp", stats.RemoteAddr+":"+stats.RemotePort)
 		if err != nil {
 			fmt.Println("解析远程地址时发生错误:", err)
 			os.Exit(1)
 		}
-
 		conn, err := net.ListenUDP("udp", localAddr)
 		if err != nil {
 			fmt.Println("监听时发生错误:", err)
@@ -85,14 +83,11 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 				}
 			}
 		}()
-		fmt.Printf("【%s】监听端口 %s 转发至 %s:%s\n", stats.Protocol, stats.LocalPort, stats.RemoteAddr, stats.RemotePort)
-
 		innerWg.Add(1)
 		go stats.handleUDPConnection(&innerWg, conn, remoteAddr, ctx)
 	} else {
 		// TCP转发
 		listener, err := net.Listen("tcp", ":"+stats.LocalPort)
-
 		if err != nil {
 			fmt.Println("监听时发生错误:", err)
 			os.Exit(1)
@@ -122,7 +117,6 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 				}
 			}
 		}()
-		fmt.Printf("【%s】监听端口 %s 转发至 %s:%s\n", stats.Protocol, stats.LocalPort, stats.RemoteAddr, stats.RemotePort)
 		for {
 			clientConn, err := listener.Accept()
 			if err != nil {
@@ -130,7 +124,6 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 				cancel()
 				break
 			}
-
 			innerWg.Add(1)
 			go stats.handleTCPConnection(&innerWg, clientConn, ctx)
 		}
