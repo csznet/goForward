@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -51,18 +52,15 @@ func Run(stats *ConnectionStats, wg *sync.WaitGroup) {
 		// UDP转发
 		localAddr, err := net.ResolveUDPAddr("udp", ":"+stats.LocalPort)
 		if err != nil {
-			fmt.Println("解析本地地址时发生错误:", err)
-			os.Exit(1)
+			log.Fatalln("解析本地地址时发生错误:", err)
 		}
 		remoteAddr, err := net.ResolveUDPAddr("udp", stats.RemoteAddr+":"+stats.RemotePort)
 		if err != nil {
-			fmt.Println("解析远程地址时发生错误:", err)
-			os.Exit(1)
+			log.Fatalln("解析远程地址时发生错误:", err)
 		}
 		conn, err := net.ListenUDP("udp", localAddr)
 		if err != nil {
-			fmt.Println("监听时发生错误:", err)
-			os.Exit(1)
+			log.Fatalln("监听时发生错误:", err)
 		}
 		defer conn.Close()
 		go func() {

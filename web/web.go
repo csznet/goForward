@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -147,7 +148,10 @@ func Run() {
 		c.Redirect(302, "/")
 	})
 	fmt.Println("Web管理面板端口:" + conf.WebPort)
-	r.Run(conf.WebIP + ":" + conf.WebPort)
+	err := r.Run(conf.WebIP + ":" + conf.WebPort)
+	if err != nil {
+		log.Panicln(err)
+	}
 }
 
 // 密码验证中间件
