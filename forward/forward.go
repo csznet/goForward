@@ -31,7 +31,7 @@ type LargeConnectionStats struct {
 // 复用缓冲区
 var bufPool = sync.Pool{
 	New: func() interface{} {
-		return make([]byte, 8192)
+		return make([]byte, 4096)
 	},
 }
 
@@ -183,8 +183,10 @@ func (cs *ConnectionStats) handleUDPConnection(localConn *net.UDPConn, remoteAdd
 			cs.TotalBytesLock.Unlock()
 
 			// 处理消息的边界和错误情况
-			go cs.forwardUDPMessage(localConn, remoteAddr, buf[:n])
-			bufPool.Put(buf[:n])
+			go func() {
+				cs.forwardUDPMessage(localConn, remoteAddr, buf[:n])
+				bufPool.Put(&buf)
+			}()
 		}
 	}
 }
@@ -199,11 +201,12 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 	if err != nil {
 		fmt.Println("写入目标时发生错误:", err)
 	}
+
 }
 
 func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 	buf := bufPool.Get().([]byte)
-	defer bufPool.Put(buf)
+	defer bufPool.Put(&buf)
 	for {
 		n, err := src.Read(buf)
 		if n > 0 {
@@ -231,7 +234,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 
 // 定时打印和处理流量变化
 func (cs *ConnectionStats) printStats(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop() // 在函数结束时停止定时器
 	for {
 		select {
@@ -286,8 +289,9 @@ func (cs *ConnectionStats) printStats(ctx context.Context) {
 func closeTCPConnections(stats *ConnectionStats) {
 	stats.TotalBytesLock.Lock()
 	defer stats.TotalBytesLock.Unlock()
-	for _, conn := range stats.TCPConnections {
+	for i, conn := range stats.TCPConnections {
 		conn.Close()
+		stats.TCPConnections[i] = nil
 	}
 	stats.TCPConnections = nil // 清空切片
 }

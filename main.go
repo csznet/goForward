@@ -63,6 +63,6 @@ func init() {
 	flag.StringVar(&conf.WebPort, "port", "8889", "Web Port")
 	flag.StringVar(&conf.WebIP, "ip", "0.0.0.0", "Web IP")
 	flag.StringVar(&conf.WebPass, "pass", "", "Web Password")
-	flag.IntVar(&conf.TcpTimeout, "tt", 3600, "Tcp Timeout")
+	flag.IntVar(&conf.TcpTimeout, "tt", 60, "Tcp Timeout")
 	flag.Parse()
 }
