@@ -119,7 +119,7 @@ func Run(stats *ConnectionStats) {
 		for {
 			clientConn, err := listener.Accept()
 			if err != nil {
-				log.Println("接受连接时发生错误:", err)
+				log.Println("【"+stats.LocalPort+"】接受连接时发生错误:", err)
 				cancel()
 				break
 			}
@@ -138,7 +138,7 @@ func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.
 	defer clientConn.Close()
 	remoteConn, err := net.Dial("tcp", cs.RemoteAddr+":"+cs.RemotePort)
 	if err != nil {
-		fmt.Println("连接远程地址时发生错误:", err)
+		log.Println("【"+cs.LocalPort+"】连接远程地址时发生错误:", err)
 		return
 	}
 	defer remoteConn.Close()
@@ -174,7 +174,7 @@ func (cs *ConnectionStats) handleUDPConnection(localConn *net.UDPConn, remoteAdd
 			buf := bufPool.Get().([]byte)
 			n, _, err := localConn.ReadFromUDP(buf)
 			if err != nil {
-				fmt.Println("从源读取时发生错误:", err)
+				log.Println("【"+cs.LocalPort+"】从源读取时发生错误:", err)
 				return
 			}
 			fmt.Printf("收到长度为 %d 的UDP数据包\n", n)
@@ -199,7 +199,7 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 	data := append(length, message...)
 	_, err := localConn.WriteToUDP(data, remoteAddr)
 	if err != nil {
-		fmt.Println("写入目标时发生错误:", err)
+		log.Println("【"+cs.LocalPort+"】写入目标时发生错误:", err)
 	}
 
 }
@@ -215,7 +215,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 			cs.TotalBytesLock.Unlock()
 			_, err := dst.Write(buf[:n])
 			if err != nil {
-				fmt.Println("写入目标时发生错误:", err)
+				log.Println("【"+cs.LocalPort+"】写入目标时发生错误:", err)
 				break
 			}
 		}
@@ -223,7 +223,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 			break
 		}
 		if err != nil {
-			fmt.Println("从源读取时发生错误:", err)
+			log.Println("【"+cs.LocalPort+"】从源读取时发生错误:", err)
 			break
 		}
 	}
