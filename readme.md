@@ -47,6 +47,12 @@ TCP 无传输超时关闭
 ./goForward -ip 1.1.1.1
 ```
 
+指定数据库位置
+
+```
+./goForward -db /root/data.db
+```
+
 设置 web 管理访问密码
 
 ```
