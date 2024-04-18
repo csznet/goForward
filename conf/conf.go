@@ -45,7 +45,7 @@ var TcpTimeout int
 var version string
 
 // 数据库位置
-var Db = "goForward.db"
+var Db string
 
 func init() {
 	if version != "" {

@@ -16,7 +16,7 @@ import (
 // 定义数据库指针
 var db *gorm.DB
 
-func init() {
+func Once() {
 	var err error
 	var dbPath string
 	executablePath, err := os.Executable()

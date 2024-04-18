@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 	"sync"
 
 	"csz.net/goForward/conf"
@@ -66,4 +67,8 @@ func init() {
 	flag.StringVar(&conf.WebPass, "pass", "", "Web Password")
 	flag.IntVar(&conf.TcpTimeout, "tt", 60, "Tcp Timeout")
 	flag.Parse()
+	if !strings.HasSuffix(conf.Db, ".db") {
+		conf.Db += ".db"
+	}
+	sql.Once()
 }
