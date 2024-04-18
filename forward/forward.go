@@ -185,7 +185,7 @@ func (cs *ConnectionStats) handleUDPConnection(localConn *net.UDPConn, remoteAdd
 			// 处理消息的边界和错误情况
 			go func() {
 				cs.forwardUDPMessage(localConn, remoteAddr, buf[:n])
-				bufPool.Put(&buf)
+				bufPool.Put(buf)
 			}()
 		}
 	}
@@ -206,7 +206,7 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 
 func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 	buf := bufPool.Get().([]byte)
-	defer bufPool.Put(&buf)
+	defer bufPool.Put(buf)
 	for {
 		n, err := src.Read(buf)
 		if n > 0 {
