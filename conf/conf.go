@@ -44,6 +44,9 @@ var TcpTimeout int
 // 版本号
 var version string
 
+// 数据库位置
+var Db string
+
 func init() {
 	if version != "" {
 		fmt.Println("goForward Version " + version)

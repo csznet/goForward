@@ -61,6 +61,7 @@ func main() {
 }
 func init() {
 	flag.StringVar(&conf.WebPort, "port", "8889", "Web Port")
+	flag.StringVar(&conf.Db, "db", "goForward.db", "Db Path")
 	flag.StringVar(&conf.WebIP, "ip", "0.0.0.0", "Web IP")
 	flag.StringVar(&conf.WebPass, "pass", "", "Web Password")
 	flag.IntVar(&conf.TcpTimeout, "tt", 60, "Tcp Timeout")

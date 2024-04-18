@@ -20,12 +20,16 @@ func init() {
 	var err error
 	var dbPath string
 	executablePath, err := os.Executable()
-	if err != nil {
-		log.Println("获取可执行文件路径失败:", err)
-		log.Println("使用默认获取的路径")
-		dbPath = "goForward.db"
+	if conf.Db == "goForward.db" {
+		if err != nil {
+			log.Println("获取可执行文件路径失败:", err)
+			log.Println("使用默认获取的路径")
+			dbPath = "goForward.db"
+		} else {
+			dbPath = filepath.Join(filepath.Dir(executablePath), "goForward.db")
+		}
 	} else {
-		dbPath = filepath.Join(filepath.Dir(executablePath), "goForward.db")
+		dbPath = conf.Db
 	}
 	fmt.Println("Data:", dbPath)
 	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
