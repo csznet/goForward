@@ -8,6 +8,7 @@ import (
 // ConnectionStats 结构体用于保存多个连接信息
 type ConnectionStats struct {
 	Id            int `gorm:"primaryKey;autoIncrement"`
+	Ps            string
 	LocalPort     string
 	RemoteAddr    string
 	RemotePort    string

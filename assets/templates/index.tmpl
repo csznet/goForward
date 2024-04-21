@@ -102,30 +102,32 @@
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <!-- <th>ID</th> -->
                     <th>本地端口</th>
                     <th>远程地址</th>
                     <th>远程端口</th>
                     <th>类型</th>
                     <th>流量</th>
                     <th>操作</th>
+                    <th>备注</th>
                 </tr>
             </thead>
             <tbody>
                 {{range .forwardList}}
                 <tr>
-                    <td>{{.Id}}</td>
+                    <!-- <td>{{.Id}}</td> -->
                     <td>{{.LocalPort}}</td>
                     <td>{{.RemoteAddr}}</td>
                     <td>{{.RemotePort}}</td>
                     <td>{{.Protocol}}</td>
-                    <td>{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
+                    <td id="data">{{if gt .TotalGigabyte 0}}{{.TotalGigabyte}}G{{end}}{{.TotalBytes}}</td>
                     <td>
                         <div class="but-container">
                             <a class="but" href="/del/{{.Id}}">删除</a>
                             <a class="but" style="background-color: #{{if eq .Status 0}}d93b3b{{else}}2181b5{{end}};" href="/do/{{.Id}}">{{if eq .Status 0}}停用{{else}}启用{{end}}</a>
                         </div>
                     </td>
+                    <td>{{.Ps}}</td>
                 </tr>
                 {{end}}
             </tbody>
@@ -137,6 +139,7 @@
         <input type="text" name="localPort" placeholder="本地端口" required>
         <input type="text" name="remotePort" placeholder="远程端口" required>
         <input type="text" name="remoteAddr" placeholder="远程地址" required>
+        <input type="text" name="ps" placeholder="备注信息">
         <label for="protocol">类型:</label>
         <select id="protocol" name="protocol" required>
             <option value="tcp">TCP</option>
@@ -146,7 +149,7 @@
     </form>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const trafficCells = document.querySelectorAll('td:nth-child(6)'); // 选择所有流量单元格
+            const trafficCells = document.querySelectorAll('#data'); // 选择所有流量单元格
             trafficCells.forEach(cell => {
                 let traffic = cell.textContent.trim();
                 let valueInBytes = 0;

@@ -39,6 +39,7 @@ func Run() {
 				RemotePort: c.PostForm("remotePort"),
 				RemoteAddr: c.PostForm("remoteAddr"),
 				Protocol:   c.PostForm("protocol"),
+				Ps:         c.PostForm("ps"),
 			}
 			if utils.AddForward(f) {
 				c.HTML(200, "msg.tmpl", gin.H{
