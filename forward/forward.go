@@ -125,7 +125,7 @@ func Run(stats *ConnectionStats) {
 			}
 			innerWg.Add(1)
 			go func() {
-				stats.handleTCPConnection(clientConn, ctx)
+				stats.handleTCPConnection(clientConn, ctx, cancel)
 				innerWg.Done()
 			}()
 		}
@@ -134,7 +134,7 @@ func Run(stats *ConnectionStats) {
 }
 
 // TCP转发
-func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.Context) {
+func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.Context, cancel context.CancelFunc) {
 	defer clientConn.Close()
 	remoteConn, err := net.Dial("tcp", cs.RemoteAddr+":"+cs.RemotePort)
 	if err != nil {
@@ -147,11 +147,17 @@ func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.
 	copyWG.Add(2)
 	go func() {
 		defer copyWG.Done()
-		cs.copyBytes(clientConn, remoteConn)
+		if err := cs.copyBytes(clientConn, remoteConn); err != nil {
+			log.Println("复制字节时发生错误:", err)
+			cancel() // Assuming `cancel` is the cancel function from the context
+		}
 	}()
 	go func() {
 		defer copyWG.Done()
-		cs.copyBytes(remoteConn, clientConn)
+		if err := cs.copyBytes(remoteConn, clientConn); err != nil {
+			log.Println("复制字节时发生错误:", err)
+			cancel() // Assuming `cancel` is the cancel function from the context
+		}
 	}()
 	for {
 		select {
@@ -204,7 +210,7 @@ func (cs *ConnectionStats) forwardUDPMessage(localConn *net.UDPConn, remoteAddr 
 
 }
 
-func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
+func (cs *ConnectionStats) copyBytes(dst, src net.Conn) error {
 	buf := bufPool.Get().([]byte)
 	defer bufPool.Put(buf)
 	for {
@@ -216,7 +222,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 			_, err := dst.Write(buf[:n])
 			if err != nil {
 				log.Println("【"+cs.LocalPort+"】写入目标时发生错误:", err)
-				break
+				return err
 			}
 		}
 		if err == io.EOF {
@@ -230,6 +236,7 @@ func (cs *ConnectionStats) copyBytes(dst, src net.Conn) {
 	// 关闭连接
 	dst.Close()
 	src.Close()
+	return nil
 }
 
 // 定时打印和处理流量变化
