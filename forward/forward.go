@@ -166,6 +166,7 @@ func (cs *ConnectionStats) handleTCPConnection(clientConn net.Conn, ctx context.
 			return
 		default:
 			copyWG.Wait()
+			return
 		}
 	}
 }
