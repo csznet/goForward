@@ -27,8 +27,8 @@ type IpBan struct {
 // 全局转发协程等待组
 var Wg sync.WaitGroup
 
-// 全局协程通道 未初始化默认为nil
-var Ch chan string
+// StopFuncs 存储每个转发的停止函数，key 为 localPort+protocol
+var StopFuncs sync.Map
 
 // Web管理面板端口
 var WebPort string

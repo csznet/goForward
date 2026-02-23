@@ -1,7 +1,7 @@
 package web
 
 import (
-	"fmt"
+	"crypto/rand"
 	"html/template"
 	"log"
 	"net/http"
@@ -17,10 +17,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// generateSecretKey 生成随机 session 密钥，避免使用硬编码密钥
+func generateSecretKey() []byte {
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		log.Panicln("生成session密钥失败:", err)
+	}
+	return key
+}
+
 func Run() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	store := cookie.NewStore([]byte("secret"))
+	store := cookie.NewStore(generateSecretKey())
 	r.Use(sessions.Sessions("goForward", store))
 	r.Use(checkCookieMiddleware)
 	r.SetHTMLTemplate(template.Must(template.New("").Funcs(r.FuncMap).ParseFS(assets.Templates, "templates/*")))
@@ -148,7 +157,7 @@ func Run() {
 		}
 		c.Redirect(302, "/")
 	})
-	fmt.Println("Web管理面板端口:" + conf.WebPort)
+	log.Printf("Web管理面板端口: %s", conf.WebPort)
 	err := r.Run(conf.WebIP + ":" + conf.WebPort)
 	if err != nil {
 		log.Panicln(err)

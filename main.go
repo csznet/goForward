@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"log"
+	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 
 	"csz.net/goForward/conf"
 	"csz.net/goForward/forward"
@@ -16,11 +21,10 @@ func main() {
 	if conf.TcpTimeout < 5 {
 		conf.TcpTimeout = 5
 	}
-	// 初始化通道
-	conf.Ch = make(chan string)
+
 	forwardList := sql.GetAction()
 	if len(forwardList) == 0 {
-		//添加测试数据
+		// 添加测试数据
 		testData := conf.ConnectionStats{
 			LocalPort:  conf.WebPort,
 			RemotePort: conf.WebPort,
@@ -39,15 +43,29 @@ func main() {
 				Protocol:   forwardList[i].Protocol,
 				LocalPort:  forwardList[i].LocalPort,
 				RemotePort: forwardList[i].RemotePort,
-				RemoteAddr: forwardList[i].RemoteAddr,
+				RemoteAddr: sql.NormalizeAddr(forwardList[i].RemoteAddr), // 兼容旧数据中可能存在的方括号
 				TotalBytes: forwardList[i].TotalBytes,
 			},
 			TotalBytesOld:  forwardList[i].TotalBytes,
 			TotalBytesLock: sync.Mutex{},
 		}
-
 		largeStats.Connections[i] = connectionStats
 	}
+
+	// 监听系统退出信号，优雅关闭所有转发
+	go func() {
+		sigCh := make(chan os.Signal, 1)
+		signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+		<-sigCh
+		log.Println("收到终止信号，正在关闭所有转发...")
+		conf.StopFuncs.Range(func(key, value interface{}) bool {
+			if cancelFn, ok := value.(context.CancelFunc); ok {
+				cancelFn()
+			}
+			return true
+		})
+	}()
+
 	// 设置 WaitGroup 计数为连接数
 	conf.Wg.Add(len(largeStats.Connections))
 	// 并发执行多个转发
@@ -58,8 +76,9 @@ func main() {
 		}(stats)
 	}
 	conf.Wg.Wait()
-	defer close(conf.Ch)
+	sql.Close()
 }
+
 func init() {
 	flag.StringVar(&conf.WebPort, "port", "8889", "Web Port")
 	flag.StringVar(&conf.Db, "db", "goForward.db", "Db Path")

@@ -1,7 +1,6 @@
 package sql
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,14 +30,28 @@ func Once() {
 	} else {
 		dbPath = conf.Db
 	}
-	fmt.Println("Data:", dbPath)
+	log.Printf("Data: %s", dbPath)
 	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
-		log.Println("连接数据库失败")
-		return
+		log.Fatalln("连接数据库失败:", err)
 	}
 	db.AutoMigrate(&conf.ConnectionStats{})
 	db.AutoMigrate(&conf.IpBan{})
+}
+
+// Close 关闭数据库连接
+func Close() {
+	if db == nil {
+		return
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Println("获取数据库连接失败:", err)
+		return
+	}
+	if err := sqlDB.Close(); err != nil {
+		log.Println("关闭数据库连接失败:", err)
+	}
 }
 
 // 获取转发列表
@@ -66,17 +79,17 @@ func GetIpBan() []conf.IpBan {
 func UpdateForwardBytes(id int, bytes uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_bytes", bytes)
 	if res.Error != nil {
-		fmt.Println(res.Error)
+		log.Println(res.Error)
 		return false
 	}
 	return true
 }
 
-// 修改指定转发统计流量(byte)
+// 修改指定转发统计流量(gigabyte)
 func UpdateForwardGb(id int, gb uint64) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("total_gigabyte", gb)
 	if res.Error != nil {
-		fmt.Println(res.Error)
+		log.Println(res.Error)
 		return false
 	}
 	return true
@@ -86,7 +99,7 @@ func UpdateForwardGb(id int, gb uint64) bool {
 func UpdateForwardStatus(id int, status int) bool {
 	res := db.Model(&conf.ConnectionStats{}).Where("id = ?", id).Update("status", status)
 	if res.Error != nil {
-		fmt.Println(res.Error)
+		log.Println(res.Error)
 		return false
 	}
 	return true
@@ -118,10 +131,20 @@ func rmSpaces(input string) string {
 	return strings.ReplaceAll(input, " ", "")
 }
 
+// NormalizeAddr 去除空格，并去掉 IPv6 地址外层的方括号，统一以裸地址形式存储。
+// 连接时配合 net.JoinHostPort 使用，后者会自动为 IPv6 补回括号。
+func NormalizeAddr(addr string) string {
+	addr = rmSpaces(addr)
+	if strings.HasPrefix(addr, "[") && strings.HasSuffix(addr, "]") {
+		addr = addr[1 : len(addr)-1]
+	}
+	return addr
+}
+
 // 增加转发
 func AddForward(newForward conf.ConnectionStats) int {
-	//预处理
-	newForward.RemoteAddr = rmSpaces(newForward.RemoteAddr)
+	// 预处理：去空格，并标准化 RemoteAddr（去掉 IPv6 方括号）
+	newForward.RemoteAddr = NormalizeAddr(newForward.RemoteAddr)
 	newForward.RemotePort = rmSpaces(newForward.RemotePort)
 	newForward.LocalPort = rmSpaces(newForward.LocalPort)
 	if newForward.Protocol != "udp" {
@@ -130,7 +153,7 @@ func AddForward(newForward conf.ConnectionStats) int {
 	if !FreeForward(newForward.LocalPort, newForward.Protocol) {
 		return 0
 	}
-	//开启事务
+	// 开启事务
 	tx := db.Begin()
 	if tx.Error != nil {
 		log.Println("开启事务失败")
@@ -138,9 +161,8 @@ func AddForward(newForward conf.ConnectionStats) int {
 	}
 	// 在事务中执行插入操作
 	if err := tx.Create(&newForward).Error; err != nil {
-		log.Println("插入新转发失败")
-		log.Println(err)
-		tx.Rollback() // 回滚事务
+		log.Println("插入新转发失败:", err)
+		tx.Rollback()
 		return 0
 	}
 	// 提交事务
@@ -159,7 +181,7 @@ func DelForward(id int) bool {
 
 // 增加错误登录
 func AddBan(ip conf.IpBan) bool {
-	//开启事务
+	// 开启事务
 	tx := db.Begin()
 	if tx.Error != nil {
 		return false
@@ -167,7 +189,7 @@ func AddBan(ip conf.IpBan) bool {
 	// 在事务中执行插入操作
 	if err := tx.Create(&ip).Error; err != nil {
 		log.Println(err)
-		tx.Rollback() // 回滚事务
+		tx.Rollback()
 		return false
 	}
 	// 提交事务
@@ -177,16 +199,11 @@ func AddBan(ip conf.IpBan) bool {
 
 // 检查过去一天内指定IP地址的记录条数是否超过三条
 func IpFree(ip string) bool {
-	// 获取过去一天的时间戳
 	oneDayAgo := time.Now().Add(-24 * time.Hour).Unix()
-
-	// 查询过去一天内指定IP地址的记录条数
 	var count int64
 	if err := db.Model(&conf.IpBan{}).Where("ip = ? AND time_stamp > ?", ip, oneDayAgo).Count(&count).Error; err != nil {
 		log.Println(err)
 		return false
 	}
-
-	// 如果记录条数超过三条，则返回false；否则返回true
 	return count < 3
 }

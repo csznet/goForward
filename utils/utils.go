@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"sync"
 
 	"csz.net/goForward/conf"
@@ -20,7 +21,7 @@ func AddForward(newF conf.ConnectionStats) bool {
 				Id:         id,
 				LocalPort:  newF.LocalPort,
 				RemotePort: newF.RemotePort,
-				RemoteAddr: newF.RemoteAddr,
+				RemoteAddr: sql.NormalizeAddr(newF.RemoteAddr), // 确保裸 IPv6（无方括号）
 				Protocol:   newF.Protocol,
 				TotalBytes: 0,
 			},
@@ -40,7 +41,10 @@ func AddForward(newF conf.ConnectionStats) bool {
 // 删除并关闭指定转发
 func DelForward(f conf.ConnectionStats) bool {
 	sql.DelForward(f.Id)
-	conf.Ch <- f.LocalPort + f.Protocol
+	key := f.LocalPort + f.Protocol
+	if cancelFn, ok := conf.StopFuncs.Load(key); ok {
+		cancelFn.(context.CancelFunc)()
+	}
 	return true
 }
 
@@ -57,7 +61,7 @@ func ExStatus(f conf.ConnectionStats) bool {
 					Id:         f.Id,
 					LocalPort:  f.LocalPort,
 					RemotePort: f.RemotePort,
-					RemoteAddr: f.RemoteAddr,
+					RemoteAddr: sql.NormalizeAddr(f.RemoteAddr), // 确保裸 IPv6（无方括号）
 					Protocol:   f.Protocol,
 					TotalBytes: f.TotalBytes,
 				},
@@ -71,10 +75,13 @@ func ExStatus(f conf.ConnectionStats) bool {
 			}()
 			return true
 		} else {
-			conf.Ch <- f.LocalPort + f.Protocol
+			// 停止转发
+			key := f.LocalPort + f.Protocol
+			if cancelFn, ok := conf.StopFuncs.Load(key); ok {
+				cancelFn.(context.CancelFunc)()
+			}
 			return true
 		}
 	}
-
 	return false
 }
